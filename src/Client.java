@@ -146,7 +146,7 @@ class Client {
         List<int[]> possibleMoves = new ArrayList<>();
         boolean roi = false;
 
-        if (board[x][y] == 5){
+        if (board[x][y] == 5) {
             roi = true;
         }
         
