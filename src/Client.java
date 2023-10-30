@@ -38,26 +38,25 @@ class Client {
                 char cmd = (char)input.read();
                 System.out.println(cmd);
 
-                // Début de la partie en joueur blanc
+                // Début de la partie en joueur rouge
                 if (cmd == '1') {
                     startGame(input, board);
                     AfficherBoard(board);
                     System.out.println("Nouvelle partie! Vous jouer blanc, entrez votre premier coup : ");
                     
-                    //Voir tous les coups possibles de E1
-                    List<int[]> possibleMovesE1 = new ArrayList<>();
-                    possibleMovesE1 = getPossibleMoves(board, 12, 2);
+                    // Voir tous les coups possibles de E1
+                    List<int[]> possibleMovesE1 = getPossibleMoves(board, 12, 2);
                     System.out.println("Possible moves for roi: ");
                     for (int[] move : possibleMovesE1) {
                         System.out.println(move[0] + " " + move[1]);
                     }
 
-                    readMove(output, console);
+                    readMove(output, console, board, letterToY);
                 }
               
                 // Debut de la partie en joueur Noir
                 if (cmd == '2') {
-                    System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des blancs");
+                    System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des rouges");
                     startGame(input, board);
                 }
 
@@ -77,13 +76,13 @@ class Client {
                     AfficherBoard(board);
                     System.out.println("Entrez votre coup : ");
 
-                    readMove(output, console);
+                    readMove(output, console, board, letterToY);
                 }
 
                 // Le dernier coup est invalide
                 if (cmd == '4') {
                     System.out.println("Coup invalide, entrez un nouveau coup : ");
-                    readMove(output, console);
+                    readMove(output, console, board, letterToY);
                 }
 
                 // La partie est terminée
@@ -95,7 +94,7 @@ class Client {
                     String s = new String(aBuffer);
                     System.out.println("Partie Terminé. Le dernier coup joué est: " + s);
                   
-                    readMove(output, console);
+                    readMove(output, console, board, letterToY);
                 }
             }
         }
@@ -127,7 +126,7 @@ class Client {
         }
     }
 
-    private static void readMove(BufferedOutputStream output, BufferedReader console, Map<Character, Integer> letterToY) throws IOException {
+    private static void readMove(BufferedOutputStream output, BufferedReader console, int[][] board, Map<Character, Integer> letterToY) throws IOException {
         String move = console.readLine();
         updateBoard(move, board, letterToY);
         output.write(move.getBytes(), 0, move.length());
@@ -165,7 +164,6 @@ class Client {
                     newY += dy;
                 }
             }
-            
         }
         
         return possibleMoves;
@@ -202,11 +200,8 @@ class Client {
         }
     }
 
-    public static boolean estCoin(int x, int y){
-        if ((x == 0 && (y == 0 || y == 12)) || (y == 0 && (x == 12 || x == 0))) {
-            return true;
-        }
-        return false;
+    public static boolean estCoin(int x, int y) {
+        return (x == 0 && (y == 0 || y == 12)) || (x == 12 && (y == 0 || y == 12));
     }
 
 }
