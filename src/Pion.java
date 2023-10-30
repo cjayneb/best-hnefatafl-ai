@@ -1,7 +1,7 @@
 enum Pion {
     ROUGE('R'),
     NOIR('N'),
-    ROI('R'),
+    ROI('K'),
     VIDE(' ');
 
     private final char pion;
