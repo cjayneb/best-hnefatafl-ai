@@ -42,7 +42,7 @@ class Client {
                 if (cmd == '1') {
                     startGame(input, board);
                     AfficherBoard(board);
-                    System.out.println("Nouvelle partie! Vous jouer blanc, entrez votre premier coup : ");
+                    System.out.println("Nouvelle partie! Vous jouer rouge, entrez votre premier coup : ");
                     
                     // Voir tous les coups possibles de E1
                     List<int[]> possibleMovesE1 = getPossibleMoves(board, 12, 2);
