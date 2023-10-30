@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 class Client {
+
+    private static CPUPlayer cpuPlayer;
+
     public static void main(String[] args) {
         Socket MyClient;
         BufferedInputStream input;
@@ -40,10 +43,11 @@ class Client {
 
                 // Début de la partie en joueur rouge
                 if (cmd == '1') {
+                    cpuPlayer.setPion(Pion.ROUGE);
                     startGame(input, board);
                     AfficherBoard(board);
                     System.out.println("Nouvelle partie! Vous jouer rouge, entrez votre premier coup : ");
-                    
+
                     // Voir tous les coups possibles de E1
                     List<int[]> possibleMovesE1 = getPossibleMoves(board, 12, 2);
                     System.out.println("Possible moves for roi: ");
@@ -51,13 +55,14 @@ class Client {
                         System.out.println(move[0] + " " + move[1]);
                     }
 
-                    readMove(output, console, board, letterToY);
+                    readAndUpdateMove(output, console, board, letterToY);
                 }
               
                 // Debut de la partie en joueur Noir
                 if (cmd == '2') {
-                    System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des rouges");
+                    cpuPlayer.setPion(Pion.NOIR);
                     startGame(input, board);
+                    System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des rouges");
                 }
 
                 // Le serveur demande le prochain coup
@@ -76,13 +81,13 @@ class Client {
                     AfficherBoard(board);
                     System.out.println("Entrez votre coup : ");
 
-                    readMove(output, console, board, letterToY);
+                    readAndUpdateMove(output, console, board, letterToY);
                 }
 
                 // Le dernier coup est invalide
                 if (cmd == '4') {
                     System.out.println("Coup invalide, entrez un nouveau coup : ");
-                    readMove(output, console, board, letterToY);
+                    readAndUpdateMove(output, console, board, letterToY);
                 }
 
                 // La partie est terminée
@@ -93,8 +98,8 @@ class Client {
 
                     String s = new String(aBuffer);
                     System.out.println("Partie Terminé. Le dernier coup joué est: " + s);
-                  
-                    readMove(output, console, board, letterToY);
+
+                    readAndUpdateMove(output, console, board, letterToY);
                 }
             }
         }
@@ -126,8 +131,12 @@ class Client {
         }
     }
 
-    private static void readMove(BufferedOutputStream output, BufferedReader console, int[][] board, Map<Character, Integer> letterToY) throws IOException {
-        String move = console.readLine();
+    private static void readAndUpdateMove(BufferedOutputStream output, BufferedReader console, int[][] board, Map<Character, Integer> letterToY) throws IOException {
+//        String move = console.readLine();
+
+        // Normalement retourne une liste de coup (Move) qu'il faudra trier pour trouver le meilleur coup
+        // Devrait aussi accepter le board courant au lieu d'un board vide
+        String move = cpuPlayer.getNextMoveAB(new Board()).get(0).toString();
         updateBoard(move, board, letterToY);
         output.write(move.getBytes(), 0, move.length());
         output.flush();
@@ -137,7 +146,7 @@ class Client {
         List<int[]> possibleMoves = new ArrayList<>();
         boolean roi = false;
 
-        if(board[x][y] == 5){
+        if (board[x][y] == 5){
             roi = true;
         }
         
@@ -149,8 +158,8 @@ class Client {
             int newX = x + dx;
             int newY = y + dy;
             
-            //ATTENTION IL RESTE ENCORE A GERER LA CASE DU MILIEU
-            if (roi) { //Parce que le roi peut aller dans les coins 
+            // ATTENTION IL RESTE ENCORE A GERER LA CASE DU MILIEU
+            if (roi) { // Parce que le roi peut aller dans les coins
                 while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && board[newX][newY] == 0 ) {
                     possibleMoves.add(new int[]{newX, newY});
                     newX += dx;
