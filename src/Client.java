@@ -1,5 +1,9 @@
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 class Client {
     public static void main(String[] args) {
@@ -7,6 +11,21 @@ class Client {
         BufferedInputStream input;
         BufferedOutputStream output;
         int[][] board = new int[13][13];
+      
+        Map<Character, Integer> letterToY = new HashMap<>();
+        letterToY.put('A', 0);
+        letterToY.put('B', 1);
+        letterToY.put('C', 2);
+        letterToY.put('D', 3);
+        letterToY.put('E', 4);
+        letterToY.put('F', 5);
+        letterToY.put('G', 6);
+        letterToY.put('H', 7);
+        letterToY.put('I', 8);
+        letterToY.put('J', 9);
+        letterToY.put('K', 10);
+        letterToY.put('L', 11);
+        letterToY.put('M', 12);
 
         try {
             MyClient = new Socket("localhost", 8888);
@@ -20,12 +39,22 @@ class Client {
                 System.out.println(cmd);
 
                 // Début de la partie en joueur blanc
-                if(cmd == '1'){
+                if (cmd == '1') {
                     startGame(input, board);
-
+                    AfficherBoard(board);
                     System.out.println("Nouvelle partie! Vous jouer blanc, entrez votre premier coup : ");
+                    
+                    //Voir tous les coups possibles de E1
+                    List<int[]> possibleMovesE1 = new ArrayList<>();
+                    possibleMovesE1 = getPossibleMoves(board, 12, 2);
+                    System.out.println("Possible moves for roi: ");
+                    for (int[] move : possibleMovesE1) {
+                        System.out.println(move[0] + " " + move[1]);
+                    }
+
                     readMove(output, console);
                 }
+              
                 // Debut de la partie en joueur Noir
                 if (cmd == '2') {
                     System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des blancs");
@@ -42,7 +71,10 @@ class Client {
                     input.read(aBuffer, 0, size);
 
                     String s = new String(aBuffer);
+
                     System.out.println("Dernier coup :" + s);
+                    updateBoard(s, board, letterToY);
+                    AfficherBoard(board);
                     System.out.println("Entrez votre coup : ");
 
                     readMove(output, console);
@@ -58,10 +90,12 @@ class Client {
                 if (cmd == '5') {
                     byte[] aBuffer = new byte[16];
                     int size = input.available();
-                    input.read(aBuffer,0,size);
+                    input.read(aBuffer, 0, size);
 
                     String s = new String(aBuffer);
                     System.out.println("Partie Terminé. Le dernier coup joué est: " + s);
+                  
+                    readMove(output, console);
                 }
             }
         }
@@ -93,9 +127,86 @@ class Client {
         }
     }
 
-    private static void readMove(BufferedOutputStream output, BufferedReader console) throws IOException {
+    private static void readMove(BufferedOutputStream output, BufferedReader console, Map<Character, Integer> letterToY) throws IOException {
         String move = console.readLine();
-        output.write(move.getBytes(),0,move.length());
+        updateBoard(move, board, letterToY);
+        output.write(move.getBytes(), 0, move.length());
         output.flush();
     }
+
+    public static List<int[]> getPossibleMoves(int[][] board, int x, int y) {
+        List<int[]> possibleMoves = new ArrayList<>();
+        boolean roi = false;
+
+        if(board[x][y] == 5){
+            roi = true;
+        }
+        
+        int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}}; 
+        
+        for (int[] direction : directions) {
+            int dx = direction[0];
+            int dy = direction[1];
+            int newX = x + dx;
+            int newY = y + dy;
+            
+            //ATTENTION IL RESTE ENCORE A GERER LA CASE DU MILIEU
+            if (roi) { //Parce que le roi peut aller dans les coins 
+                while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && board[newX][newY] == 0 ) {
+                    possibleMoves.add(new int[]{newX, newY});
+                    newX += dx;
+                    newY += dy;
+                }
+            } 
+            else {
+                while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && board[newX][newY] == 0 && !estCoin(newX, newY)) {
+                    possibleMoves.add(new int[]{newX, newY});
+                    newX += dx;
+                    newY += dy;
+                }
+            }
+            
+        }
+        
+        return possibleMoves;
+    }
+
+    public static void updateBoard(String dernierMove, int[][] board, Map<Character, Integer> letterToY) {
+        String [] dernierMoveTab = dernierMove.split("-");
+        int joueur = deleteMove(dernierMoveTab[0], board, letterToY);
+        addMove(dernierMoveTab[1], board, joueur, letterToY);
+    }
+
+    public static int deleteMove(String s, int[][] board, Map<Character, Integer> letterToY) {
+        int x = 13 - Integer.parseInt(s.trim().substring(1)); //Soustraction car le board est inversé
+        int y = letterToY.get(s.trim().charAt(0));
+        int joueur = board[x][y];
+        board[x][y] = 0;
+        return joueur;
+    }
+
+    public static void addMove(String s, int[][] board, int joueur, Map<Character, Integer> letterToY) {
+        int x = 13 - Integer.parseInt(s.trim().substring(1)); //Soustraction car le board est inversé
+        int y = letterToY.get(s.trim().charAt(0));
+        board[x][y] = joueur;
+    }
+
+    public static void AfficherBoard(int[][] board) {
+        System.out.println("BOARD : ");
+        //print the board 
+        for (int i = 0; i < 13; i++) {
+            for (int j = 0; j < 13; j++) { 
+                System.out.print(board[i][j]);
+            }
+            System.out.println();
+        }
+    }
+
+    public static boolean estCoin(int x, int y){
+        if ((x == 0 && (y == 0 || y == 12)) || (y == 0 && (x == 12 || x == 0))) {
+            return true;
+        }
+        return false;
+    }
+
 }
