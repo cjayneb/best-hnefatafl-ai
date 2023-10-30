@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 class Client {
     public static void main(String[] args) {
         Socket MyClient;
@@ -12,21 +13,6 @@ class Client {
         BufferedOutputStream output;
         int[][] board = new int[13][13];
       
-        Map<Character, Integer> letterToY = new HashMap<>();
-        letterToY.put('A', 0);
-        letterToY.put('B', 1);
-        letterToY.put('C', 2);
-        letterToY.put('D', 3);
-        letterToY.put('E', 4);
-        letterToY.put('F', 5);
-        letterToY.put('G', 6);
-        letterToY.put('H', 7);
-        letterToY.put('I', 8);
-        letterToY.put('J', 9);
-        letterToY.put('K', 10);
-        letterToY.put('L', 11);
-        letterToY.put('M', 12);
-
         try {
             MyClient = new Socket("localhost", 8888);
 
@@ -51,7 +37,7 @@ class Client {
                         System.out.println(move[0] + " " + move[1]);
                     }
 
-                    readMove(output, console, board, letterToY);
+                    readMove(output, console, board);
                 }
               
                 // Debut de la partie en joueur Noir
@@ -72,17 +58,17 @@ class Client {
                     String s = new String(aBuffer);
 
                     System.out.println("Dernier coup :" + s);
-                    updateBoard(s, board, letterToY);
+                    updateBoard(s, board);
                     AfficherBoard(board);
                     System.out.println("Entrez votre coup : ");
 
-                    readMove(output, console, board, letterToY);
+                    readMove(output, console, board);
                 }
 
                 // Le dernier coup est invalide
                 if (cmd == '4') {
                     System.out.println("Coup invalide, entrez un nouveau coup : ");
-                    readMove(output, console, board, letterToY);
+                    readMove(output, console, board);
                 }
 
                 // La partie est terminée
@@ -94,7 +80,7 @@ class Client {
                     String s = new String(aBuffer);
                     System.out.println("Partie Terminé. Le dernier coup joué est: " + s);
                   
-                    readMove(output, console, board, letterToY);
+                    readMove(output, console, board);
                 }
             }
         }
@@ -123,12 +109,12 @@ class Client {
                 x = 0;
                 y++;
             }
-        }
+        } 
     }
 
-    private static void readMove(BufferedOutputStream output, BufferedReader console, int[][] board, Map<Character, Integer> letterToY) throws IOException {
+    private static void readMove(BufferedOutputStream output, BufferedReader console, int[][] board) throws IOException {
         String move = console.readLine();
-        updateBoard(move, board, letterToY);
+        updateBoard(move, board);
         output.write(move.getBytes(), 0, move.length());
         output.flush();
     }
@@ -169,24 +155,11 @@ class Client {
         return possibleMoves;
     }
 
-    public static void updateBoard(String dernierMove, int[][] board, Map<Character, Integer> letterToY) {
-        String [] dernierMoveTab = dernierMove.split("-");
-        int joueur = deleteMove(dernierMoveTab[0], board, letterToY);
-        addMove(dernierMoveTab[1], board, joueur, letterToY);
-    }
-
-    public static int deleteMove(String s, int[][] board, Map<Character, Integer> letterToY) {
-        int x = 13 - Integer.parseInt(s.trim().substring(1)); //Soustraction car le board est inversé
-        int y = letterToY.get(s.trim().charAt(0));
-        int joueur = board[x][y];
-        board[x][y] = 0;
-        return joueur;
-    }
-
-    public static void addMove(String s, int[][] board, int joueur, Map<Character, Integer> letterToY) {
-        int x = 13 - Integer.parseInt(s.trim().substring(1)); //Soustraction car le board est inversé
-        int y = letterToY.get(s.trim().charAt(0));
-        board[x][y] = joueur;
+    public static void updateBoard(String dernierMove, int[][] board) {
+        Move dernierMoveObj = new Move(dernierMove.split("-"));
+        int joueur = board[dernierMoveObj.old_position.x][dernierMoveObj.old_position.y];
+        board[dernierMoveObj.old_position.x][dernierMoveObj.old_position.y] = 0;
+        board[dernierMoveObj.new_position.x][dernierMoveObj.new_position.y] = joueur;
     }
 
     public static void AfficherBoard(int[][] board) {
