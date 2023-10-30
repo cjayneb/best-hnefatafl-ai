@@ -24,10 +24,7 @@ class Client {
                     startGame(input, board);
 
                     System.out.println("Nouvelle partie! Vous jouer blanc, entrez votre premier coup : ");
-                    String move;
-                    move = console.readLine();
-                    output.write(move.getBytes(),0,move.length());
-                    output.flush();
+                    readMove(output, console);
                 }
                 // Debut de la partie en joueur Noir
                 if (cmd == '2') {
@@ -48,18 +45,13 @@ class Client {
                     System.out.println("Dernier coup :" + s);
                     System.out.println("Entrez votre coup : ");
 
-                    String move = console.readLine();
-                    output.write(move.getBytes(),0,move.length());
-                    output.flush();
+                    readMove(output, console);
                 }
 
                 // Le dernier coup est invalide
                 if (cmd == '4') {
                     System.out.println("Coup invalide, entrez un nouveau coup : ");
-                    String move = console.readLine();
-                    output.write(move.getBytes(),0,move.length());
-                    output.flush();
-
+                    readMove(output, console);
                 }
 
                 // La partie est terminée
@@ -70,9 +62,6 @@ class Client {
 
                     String s = new String(aBuffer);
                     System.out.println("Partie Terminé. Le dernier coup joué est: " + s);
-                    String move = console.readLine();
-                    output.write(move.getBytes(),0,move.length());
-                    output.flush();
                 }
             }
         }
@@ -102,5 +91,11 @@ class Client {
                 y++;
             }
         }
+    }
+
+    private static void readMove(BufferedOutputStream output, BufferedReader console) throws IOException {
+        String move = console.readLine();
+        output.write(move.getBytes(),0,move.length());
+        output.flush();
     }
 }
