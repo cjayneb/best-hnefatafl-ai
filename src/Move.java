@@ -7,10 +7,10 @@ public class Move {
     Map<Character, Integer> letterToY = new HashMap<>();
     public Point old_position;
     public Point new_position;
-    public String [] s;
+    public String s;
 
 
-    public Move(String [] s) {
+    public Move(String s) {
         InitHash();
         old_position = new Point();
         new_position = new Point();
@@ -18,10 +18,12 @@ public class Move {
         stringToIndex();
     }
 
-    public Move(int [] m){
+    public Move(int x_old, int y_old, int x_new, int y_new) {
         InitHash();
+        this.old_position = new Point(x_old, y_old);
+        this.new_position = new Point(x_new, y_new);
+        indexToString();
     }
-
     public void InitHash() {
         letterToY.put('A', 0);
         letterToY.put('B', 1);
@@ -39,12 +41,22 @@ public class Move {
     }
 
     public Move stringToIndex(){
-
-        old_position.x = 13 - Integer.parseInt(this.s[0].trim().substring(1)); //Soustraction car le board est inversé
-        old_position.y = letterToY.get(this.s[0].trim().charAt(0));
-        new_position.x = 13 - Integer.parseInt(this.s[1].trim().substring(1));
-        new_position.y = letterToY.get(this.s[1].trim().charAt(0));
+        String [] sTab = s.split("-");
+        this.old_position.x = 13 - Integer.parseInt(sTab[0].trim().substring(1)); //Soustraction car le board est inversé
+        this.old_position.y = letterToY.get(sTab[0].trim().charAt(0));
+        this.new_position.x = 13 - Integer.parseInt(sTab[1].trim().substring(1));
+        this.new_position.y = letterToY.get(sTab[1].trim().charAt(0));
         return this;
     }
 
+    public Move indexToString(){
+        String old_position = "";
+        String new_position = "";
+        old_position += (char) (this.old_position.y + 'A');
+        old_position += (13 - this.old_position.x);
+        new_position += (char) (this.new_position.y + 'A');
+        new_position += (13 - this.new_position.x);
+        this.s = old_position + "-" + new_position;
+        return this;
+    }
 }
