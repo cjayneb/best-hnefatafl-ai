@@ -105,10 +105,10 @@ class Client {
     }
 
     private static void readMove(BufferedOutputStream output, BufferedReader console, int[][] board, boolean joueurRouge) throws IOException {
-        String move = console.readLine();
+        //String move = console.readLine();
 
         Map<String, List<int[]>> hashMove = getHashafficherMovesPossibles(board, joueurRouge);
-        /*Random random = new Random();
+        Random random = new Random();
         List<String> keysAsArray = new ArrayList<>(hashMove.keySet());
 
         int[] randomMove = null;
@@ -132,7 +132,7 @@ class Client {
         old_coords[1] = old_coords[1].substring(1);
 
         String move = new Move(Integer.parseInt(old_coords[0]), Integer.parseInt(old_coords[1]), randomMove[0], randomMove[1]).s; //Structure si on veut convertir coordonnées en String demandé par serveur
-        */
+
         updateBoard(move, board);
         output.write(move.getBytes(), 0, move.length());
         output.flush();
