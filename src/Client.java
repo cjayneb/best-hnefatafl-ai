@@ -1,9 +1,7 @@
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 class Client {
     public static void main(String[] args) {
@@ -11,22 +9,8 @@ class Client {
         BufferedInputStream input;
         BufferedOutputStream output;
         int[][] board = new int[13][13];
+        boolean joueurRouge = false;
       
-        Map<Character, Integer> letterToY = new HashMap<>();
-        letterToY.put('A', 0);
-        letterToY.put('B', 1);
-        letterToY.put('C', 2);
-        letterToY.put('D', 3);
-        letterToY.put('E', 4);
-        letterToY.put('F', 5);
-        letterToY.put('G', 6);
-        letterToY.put('H', 7);
-        letterToY.put('I', 8);
-        letterToY.put('J', 9);
-        letterToY.put('K', 10);
-        letterToY.put('L', 11);
-        letterToY.put('M', 12);
-
         try {
             MyClient = new Socket("localhost", 8888);
 
@@ -40,18 +24,13 @@ class Client {
 
                 // Début de la partie en joueur rouge
                 if (cmd == '1') {
+                    joueurRouge = true;
                     startGame(input, board);
                     AfficherBoard(board);
                     System.out.println("Nouvelle partie! Vous jouer rouge, entrez votre premier coup : ");
-                    
-                    // Voir tous les coups possibles de E1
-                    List<int[]> possibleMovesE1 = getPossibleMoves(board, 12, 2);
-                    System.out.println("Possible moves for roi: ");
-                    for (int[] move : possibleMovesE1) {
-                        System.out.println(move[0] + " " + move[1]);
-                    }
 
-                    readMove(output, console, board, letterToY);
+
+                    readMove(output, console, board, joueurRouge);
                 }
               
                 // Debut de la partie en joueur Noir
@@ -72,17 +51,16 @@ class Client {
                     String s = new String(aBuffer);
 
                     System.out.println("Dernier coup :" + s);
-                    updateBoard(s, board, letterToY);
+                    updateBoard(s, board);
                     AfficherBoard(board);
                     System.out.println("Entrez votre coup : ");
-
-                    readMove(output, console, board, letterToY);
+                    readMove(output, console, board, joueurRouge);
                 }
 
                 // Le dernier coup est invalide
                 if (cmd == '4') {
                     System.out.println("Coup invalide, entrez un nouveau coup : ");
-                    readMove(output, console, board, letterToY);
+                    readMove(output, console, board, joueurRouge);
                 }
 
                 // La partie est terminée
@@ -94,7 +72,7 @@ class Client {
                     String s = new String(aBuffer);
                     System.out.println("Partie Terminé. Le dernier coup joué est: " + s);
                   
-                    readMove(output, console, board, letterToY);
+                    readMove(output, console, board, joueurRouge);
                 }
             }
         }
@@ -123,14 +101,69 @@ class Client {
                 x = 0;
                 y++;
             }
-        }
+        } 
     }
 
-    private static void readMove(BufferedOutputStream output, BufferedReader console, int[][] board, Map<Character, Integer> letterToY) throws IOException {
-        String move = console.readLine();
-        updateBoard(move, board, letterToY);
+    private static void readMove(BufferedOutputStream output, BufferedReader console, int[][] board, boolean joueurRouge) throws IOException {
+        //String move = console.readLine();
+
+        Map<String, List<int[]>> hashMove = getHashafficherMovesPossibles(board, joueurRouge);
+        Random random = new Random();
+        List<String> keysAsArray = new ArrayList<>(hashMove.keySet());
+
+        int[] randomMove = null;
+        String randomKey = null;
+        List<int[]> movesList = null;
+
+        if (!keysAsArray.isEmpty()) {
+            while (movesList == null || movesList.isEmpty()) {
+                // Pick a random key from the keysAsArray.
+                randomKey = keysAsArray.get(random.nextInt(keysAsArray.size()));
+                movesList = hashMove.get(randomKey);
+            }
+            randomMove = movesList.get(random.nextInt(movesList.size()));
+        }
+
+        System.out.println("Random Key: " + randomKey);
+        System.out.println("Random Value: " + Arrays.toString(randomMove));
+
+        String [] old_coords = randomKey.split(" ");
+        old_coords[0] = old_coords[0].substring(1);
+        old_coords[1] = old_coords[1].substring(1);
+
+        String move = new Move(Integer.parseInt(old_coords[0]), Integer.parseInt(old_coords[1]), randomMove[0], randomMove[1]).s; //Structure si on veut convertir coordonnées en String demandé par serveur
+
+        updateBoard(move, board);
         output.write(move.getBytes(), 0, move.length());
         output.flush();
+    }
+
+    public static Map<String, List<int[]>> getHashafficherMovesPossibles(int[][] board, boolean joueurRouge) {
+        Map<String, List<int[]>> allPossibleMoves = getAllPossibleMoves(board, joueurRouge);
+        for (Map.Entry<String, List<int[]>> entry : allPossibleMoves.entrySet()) {
+            System.out.print(entry.getKey() + " : [");
+            for (int[] coordinates : entry.getValue()) {
+                System.out.print(Arrays.toString(coordinates) + ", ");
+            }
+            System.out.println("]");
+        }
+        return allPossibleMoves;
+    }
+    public static Map<String, List<int[]>> getAllPossibleMoves(int[][] board, boolean joueurRouge) {
+        Map<String, List<int[]>> allPossibleMoves = new HashMap<>();
+
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board[x].length; y++) {
+               if ((board[x][y] == 4 && joueurRouge) || ((board[x][y] == 5 || board[x][y] == 2) && !joueurRouge)) {
+                    List<int[]> possibleMoves = getPossibleMoves(board, x, y);
+                    String position = "x" + x + " y" + y;
+
+                    allPossibleMoves.put(position, possibleMoves);
+             }
+            }
+        }
+
+        return allPossibleMoves;
     }
 
     public static List<int[]> getPossibleMoves(int[][] board, int x, int y) {
@@ -149,8 +182,7 @@ class Client {
             int newX = x + dx;
             int newY = y + dy;
             
-            //ATTENTION IL RESTE ENCORE A GERER LA CASE DU MILIEU
-            if (roi) { //Parce que le roi peut aller dans les coins 
+            if (roi) { //Parce que le roi peut aller dans les coins
                 while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && board[newX][newY] == 0 ) {
                     possibleMoves.add(new int[]{newX, newY});
                     newX += dx;
@@ -159,6 +191,11 @@ class Client {
             } 
             else {
                 while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && board[newX][newY] == 0 && !estCoin(newX, newY)) {
+                    if(newX == 6 && newY == 6){
+                        newX += dx;
+                        newY += dy;
+                        continue;
+                    }
                     possibleMoves.add(new int[]{newX, newY});
                     newX += dx;
                     newY += dy;
@@ -169,24 +206,11 @@ class Client {
         return possibleMoves;
     }
 
-    public static void updateBoard(String dernierMove, int[][] board, Map<Character, Integer> letterToY) {
-        String [] dernierMoveTab = dernierMove.split("-");
-        int joueur = deleteMove(dernierMoveTab[0], board, letterToY);
-        addMove(dernierMoveTab[1], board, joueur, letterToY);
-    }
-
-    public static int deleteMove(String s, int[][] board, Map<Character, Integer> letterToY) {
-        int x = 13 - Integer.parseInt(s.trim().substring(1)); //Soustraction car le board est inversé
-        int y = letterToY.get(s.trim().charAt(0));
-        int joueur = board[x][y];
-        board[x][y] = 0;
-        return joueur;
-    }
-
-    public static void addMove(String s, int[][] board, int joueur, Map<Character, Integer> letterToY) {
-        int x = 13 - Integer.parseInt(s.trim().substring(1)); //Soustraction car le board est inversé
-        int y = letterToY.get(s.trim().charAt(0));
-        board[x][y] = joueur;
+    public static void updateBoard(String dernierMove, int[][] board) {
+        Move dernierMoveObj = new Move(dernierMove);
+        int joueur = board[dernierMoveObj.old_position.x][dernierMoveObj.old_position.y];
+        board[dernierMoveObj.old_position.x][dernierMoveObj.old_position.y] = 0;
+        board[dernierMoveObj.new_position.x][dernierMoveObj.new_position.y] = joueur;
     }
 
     public static void AfficherBoard(int[][] board) {
