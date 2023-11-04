@@ -154,19 +154,12 @@ class Client {
 
         for (int x = 0; x < board.length; x++) {
             for (int y = 0; y < board[x].length; y++) {
-                if (board[x][y] == 4 && joueurRouge) {
+               if ((board[x][y] == 4 && joueurRouge) || ((board[x][y] == 5 || board[x][y] == 2) && !joueurRouge)) {
                     List<int[]> possibleMoves = getPossibleMoves(board, x, y);
-
                     String position = "x" + x + " y" + y;
 
                     allPossibleMoves.put(position, possibleMoves);
-                }else if((board[x][y] == 5 || board[x][y] == 2) && !joueurRouge){
-                    List<int[]> possibleMoves = getPossibleMoves(board, x, y);
-
-                    String position = "x" + x + " y" + y;
-
-                    allPossibleMoves.put(position, possibleMoves);
-                }
+             }
             }
         }
 
