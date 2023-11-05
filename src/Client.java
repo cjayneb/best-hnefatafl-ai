@@ -17,24 +17,22 @@ class Client {
 
             input = new BufferedInputStream(MyClient.getInputStream());
             output = new BufferedOutputStream(MyClient.getOutputStream());
-            BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
             while (true) {
                 char cmd = (char)input.read();
                 System.out.println(cmd);
 
-                // Début de la partie en joueur rouge
+                // Début de la partie en joueur Rouge
                 if (cmd == '1') {
                     cpuPlayer = new CPUPlayer(Pion.ROUGE);
                     startGame(input, board);
                     afficherBoard(board);
                     System.out.println("Nouvelle partie! Vous jouer rouge, entrez votre premier coup : ");
 
-
-                    readAndUpdateMove(output, console, board);
+                    readAndUpdateMove(output, board);
                 }
               
-                // Debut de la partie en joueur Noir
+                // Début de la partie en joueur Noir
                 if (cmd == '2') {
                     cpuPlayer = new CPUPlayer(Pion.NOIR);
                     startGame(input, board);
@@ -57,13 +55,13 @@ class Client {
                     afficherBoard(board);
                     System.out.println("Entrez votre coup : ");
 
-                    readAndUpdateMove(output, console, board);
+                    readAndUpdateMove(output, board);
                 }
 
                 // Le dernier coup est invalide
                 if (cmd == '4') {
                     System.out.println("Coup invalide, entrez un nouveau coup : ");
-                    readAndUpdateMove(output, console, board);
+                    readAndUpdateMove(output, board);
                 }
 
                 // La partie est terminée
@@ -75,7 +73,7 @@ class Client {
                     String s = new String(aBuffer);
                     System.out.println("Partie Terminé. Le dernier coup joué est: " + s);
 
-                    readAndUpdateMove(output, console, board);
+                    readAndUpdateMove(output, board);
                 }
             }
         }
@@ -89,7 +87,7 @@ class Client {
         int size = input.available();
         //System.out.println("size " + size);
 
-        input.read(aBuffer,0,size);
+        input.read(aBuffer, 0, size);
         String s = new String(aBuffer).trim();
         System.out.println(s);
 
@@ -107,7 +105,7 @@ class Client {
         } 
     }
 
-    private static void readAndUpdateMove(BufferedOutputStream output, BufferedReader console, int[][] board) throws IOException {
+    private static void readAndUpdateMove(BufferedOutputStream output, int[][] board) throws IOException {
         Map<String, List<int[]>> hashMove = getHashAfficherMovesPossibles(board);
         Random random = new Random();
         List<String> keysAsArray = new ArrayList<>(hashMove.keySet());
@@ -132,11 +130,12 @@ class Client {
         old_coords[0] = old_coords[0].substring(1);
         old_coords[1] = old_coords[1].substring(1);
 
-        String move = new Move(Integer.parseInt(old_coords[0]), Integer.parseInt(old_coords[1]), randomMove[0], randomMove[1]).s; //Structure si on veut convertir coordonnées en String demandé par serveur
+        // Structure si on veut convertir les coordonnées en String comme demandé par le serveur
+        String move = new Move(Integer.parseInt(old_coords[0]), Integer.parseInt(old_coords[1]), randomMove[0], randomMove[1]).s;
 
         // Normalement retourne une liste de coup (Move) qu'il faudra trier pour trouver le meilleur coup
         // Devrait aussi accepter le board courant au lieu d'un board vide
-        // Je te laisse avoir du fun avec ca JC :D
+        // Je te laisse avoir du fun avec ca JC :D (! Je parle de la ligne ci-dessus BTW !)
 //        String move = cpuPlayer.getNextMoveAB(new Board()).get(0).toString();
 
         updateBoard(move, board);
@@ -146,8 +145,10 @@ class Client {
 
     public static Map<String, List<int[]>> getHashAfficherMovesPossibles(int[][] board) {
         Map<String, List<int[]>> allPossibleMoves = getAllPossibleMoves(board);
+
         for (Map.Entry<String, List<int[]>> entry : allPossibleMoves.entrySet()) {
             System.out.print(entry.getKey() + " : [");
+
             for (int[] coordinates : entry.getValue()) {
                 System.out.print(Arrays.toString(coordinates) + ", ");
             }
@@ -164,9 +165,8 @@ class Client {
                if ((board[x][y] == 4 && cpuPlayer.getPion() == Pion.ROUGE) || ((board[x][y] == 5 || board[x][y] == 2) && cpuPlayer.getPion() != Pion.ROUGE)) {
                     List<int[]> possibleMoves = getPossibleMoves(board, x, y);
                     String position = "x" + x + " y" + y;
-
                     allPossibleMoves.put(position, possibleMoves);
-             }
+               }
             }
         }
 
@@ -185,7 +185,8 @@ class Client {
             int newX = x + dx;
             int newY = y + dy;
 
-            if (roi) { // Parce que le roi peut aller dans les coins
+            // Parce que le roi peut aller dans les coins
+            if (roi) {
                 while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && board[newX][newY] == 0 ) {
                     possibleMoves.add(new int[]{newX, newY});
                     newX += dx;
