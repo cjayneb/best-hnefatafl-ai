@@ -8,7 +8,6 @@ class Client {
 
     public static void main(String[] args) {
         Socket MyClient;
-        cpuPlayer = new CPUPlayer();
         BufferedInputStream input;
         BufferedOutputStream output;
         int[][] board = new int[13][13];
@@ -26,7 +25,7 @@ class Client {
 
                 // Début de la partie en joueur rouge
                 if (cmd == '1') {
-                    cpuPlayer.setPion(Pion.ROUGE);
+                    cpuPlayer = new CPUPlayer(Pion.ROUGE);
                     startGame(input, board);
                     afficherBoard(board);
                     System.out.println("Nouvelle partie! Vous jouer rouge, entrez votre premier coup : ");
@@ -37,7 +36,7 @@ class Client {
               
                 // Debut de la partie en joueur Noir
                 if (cmd == '2') {
-                    cpuPlayer.setPion(Pion.NOIR);
+                    cpuPlayer = new CPUPlayer(Pion.NOIR);
                     startGame(input, board);
                     System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des rouges");
                 }
