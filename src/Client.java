@@ -2,41 +2,41 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-
 class Client {
+
+    private static CPUPlayer cpuPlayer;
+
     public static void main(String[] args) {
         Socket MyClient;
         BufferedInputStream input;
         BufferedOutputStream output;
         int[][] board = new int[13][13];
-        boolean joueurRouge = false;
       
         try {
             MyClient = new Socket("localhost", 8888);
 
             input = new BufferedInputStream(MyClient.getInputStream());
             output = new BufferedOutputStream(MyClient.getOutputStream());
-            BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
             while (true) {
                 char cmd = (char)input.read();
                 System.out.println(cmd);
 
-                // Début de la partie en joueur rouge
+                // Début de la partie en joueur Rouge
                 if (cmd == '1') {
-                    joueurRouge = true;
+                    cpuPlayer = new CPUPlayer(Pion.ROUGE);
                     startGame(input, board);
-                    AfficherBoard(board);
+                    afficherBoard(board);
                     System.out.println("Nouvelle partie! Vous jouer rouge, entrez votre premier coup : ");
 
-
-                    readMove(output, console, board, joueurRouge);
+                    readAndUpdateMove(output, board);
                 }
               
-                // Debut de la partie en joueur Noir
+                // Début de la partie en joueur Noir
                 if (cmd == '2') {
-                    System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des rouges");
+                    cpuPlayer = new CPUPlayer(Pion.NOIR);
                     startGame(input, board);
+                    System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des rouges");
                 }
 
                 // Le serveur demande le prochain coup
@@ -52,15 +52,16 @@ class Client {
 
                     System.out.println("Dernier coup :" + s);
                     updateBoard(s, board);
-                    AfficherBoard(board);
+                    afficherBoard(board);
                     System.out.println("Entrez votre coup : ");
-                    readMove(output, console, board, joueurRouge);
+
+                    readAndUpdateMove(output, board);
                 }
 
                 // Le dernier coup est invalide
                 if (cmd == '4') {
                     System.out.println("Coup invalide, entrez un nouveau coup : ");
-                    readMove(output, console, board, joueurRouge);
+                    readAndUpdateMove(output, board);
                 }
 
                 // La partie est terminée
@@ -71,8 +72,8 @@ class Client {
 
                     String s = new String(aBuffer);
                     System.out.println("Partie Terminé. Le dernier coup joué est: " + s);
-                  
-                    readMove(output, console, board, joueurRouge);
+
+                    readAndUpdateMove(output, board);
                 }
             }
         }
@@ -86,7 +87,7 @@ class Client {
         int size = input.available();
         //System.out.println("size " + size);
 
-        input.read(aBuffer,0,size);
+        input.read(aBuffer, 0, size);
         String s = new String(aBuffer).trim();
         System.out.println(s);
 
@@ -104,10 +105,8 @@ class Client {
         } 
     }
 
-    private static void readMove(BufferedOutputStream output, BufferedReader console, int[][] board, boolean joueurRouge) throws IOException {
-        //String move = console.readLine();
-
-        Map<String, List<int[]>> hashMove = getHashafficherMovesPossibles(board, joueurRouge);
+    private static void readAndUpdateMove(BufferedOutputStream output, int[][] board) throws IOException {
+        Map<String, List<int[]>> hashMove = getHashAfficherMovesPossibles(board);
         Random random = new Random();
         List<String> keysAsArray = new ArrayList<>(hashMove.keySet());
 
@@ -131,17 +130,25 @@ class Client {
         old_coords[0] = old_coords[0].substring(1);
         old_coords[1] = old_coords[1].substring(1);
 
-        String move = new Move(Integer.parseInt(old_coords[0]), Integer.parseInt(old_coords[1]), randomMove[0], randomMove[1]).s; //Structure si on veut convertir coordonnées en String demandé par serveur
+        // Structure si on veut convertir les coordonnées en String comme demandé par le serveur
+        String move = new Move(Integer.parseInt(old_coords[0]), Integer.parseInt(old_coords[1]), randomMove[0], randomMove[1]).s;
+
+        // Normalement retourne une liste de coup (Move) qu'il faudra trier pour trouver le meilleur coup
+        // Devrait aussi accepter le board courant au lieu d'un board vide
+        // Je te laisse avoir du fun avec ca JC :D (! Je parle de la ligne ci-dessus BTW !)
+//        String move = cpuPlayer.getNextMoveAB(new Board()).get(0).toString();
 
         updateBoard(move, board);
         output.write(move.getBytes(), 0, move.length());
         output.flush();
     }
 
-    public static Map<String, List<int[]>> getHashafficherMovesPossibles(int[][] board, boolean joueurRouge) {
-        Map<String, List<int[]>> allPossibleMoves = getAllPossibleMoves(board, joueurRouge);
+    public static Map<String, List<int[]>> getHashAfficherMovesPossibles(int[][] board) {
+        Map<String, List<int[]>> allPossibleMoves = getAllPossibleMoves(board);
+
         for (Map.Entry<String, List<int[]>> entry : allPossibleMoves.entrySet()) {
             System.out.print(entry.getKey() + " : [");
+
             for (int[] coordinates : entry.getValue()) {
                 System.out.print(Arrays.toString(coordinates) + ", ");
             }
@@ -149,17 +156,17 @@ class Client {
         }
         return allPossibleMoves;
     }
-    public static Map<String, List<int[]>> getAllPossibleMoves(int[][] board, boolean joueurRouge) {
+
+    public static Map<String, List<int[]>> getAllPossibleMoves(int[][] board) {
         Map<String, List<int[]>> allPossibleMoves = new HashMap<>();
 
         for (int x = 0; x < board.length; x++) {
             for (int y = 0; y < board[x].length; y++) {
-               if ((board[x][y] == 4 && joueurRouge) || ((board[x][y] == 5 || board[x][y] == 2) && !joueurRouge)) {
+               if ((board[x][y] == 4 && cpuPlayer.getPion() == Pion.ROUGE) || ((board[x][y] == 5 || board[x][y] == 2) && cpuPlayer.getPion() != Pion.ROUGE)) {
                     List<int[]> possibleMoves = getPossibleMoves(board, x, y);
                     String position = "x" + x + " y" + y;
-
                     allPossibleMoves.put(position, possibleMoves);
-             }
+               }
             }
         }
 
@@ -168,21 +175,18 @@ class Client {
 
     public static List<int[]> getPossibleMoves(int[][] board, int x, int y) {
         List<int[]> possibleMoves = new ArrayList<>();
-        boolean roi = false;
+        boolean roi = board[x][y] == 5;
 
-        if(board[x][y] == 5){
-            roi = true;
-        }
-        
-        int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}}; 
+        int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
         
         for (int[] direction : directions) {
             int dx = direction[0];
             int dy = direction[1];
             int newX = x + dx;
             int newY = y + dy;
-            
-            if (roi) { //Parce que le roi peut aller dans les coins
+
+            // Parce que le roi peut aller dans les coins
+            if (roi) {
                 while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && board[newX][newY] == 0 ) {
                     possibleMoves.add(new int[]{newX, newY});
                     newX += dx;
@@ -213,7 +217,7 @@ class Client {
         board[dernierMoveObj.new_position.x][dernierMoveObj.new_position.y] = joueur;
     }
 
-    public static void AfficherBoard(int[][] board) {
+    public static void afficherBoard(int[][] board) {
         System.out.println("BOARD : ");
         //print the board 
         for (int i = 0; i < 13; i++) {

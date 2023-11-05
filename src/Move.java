@@ -3,12 +3,11 @@ import java.util.Map;
 import java.awt.Point;
 
 public class Move {
-
     Map<Character, Integer> letterToY = new HashMap<>();
     public Point old_position;
     public Point new_position;
     public String s;
-
+    private int numOfNodes;
 
     public Move(String s) {
         InitHash();
@@ -40,7 +39,7 @@ public class Move {
         letterToY.put('M', 12);
     }
 
-    public Move stringToIndex(){
+    public Move stringToIndex() {
         String [] sTab = s.split("-");
         this.old_position.x = 13 - Integer.parseInt(sTab[0].trim().substring(1)); //Soustraction car le board est inversé
         this.old_position.y = letterToY.get(sTab[0].trim().charAt(0));
@@ -49,7 +48,7 @@ public class Move {
         return this;
     }
 
-    public Move indexToString(){
+    public Move indexToString() {
         String old_position = "";
         String new_position = "";
         old_position += (char) (this.old_position.y + 'A');
@@ -58,5 +57,13 @@ public class Move {
         new_position += (13 - this.new_position.x);
         this.s = old_position + "-" + new_position;
         return this;
+    }
+
+    public void setNumOfNodes(int numOfNodes) {
+        this.numOfNodes = numOfNodes;
+    }
+
+    public int getNumOfNodes() {
+        return this.numOfNodes;
     }
 }
