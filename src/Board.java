@@ -97,7 +97,7 @@ public class Board {
         Pion p = board[move.old_position.x][move.old_position.y];
         board[move.old_position.x][move.old_position.y] = Pion.VIDE;
         board[move.new_position.x][move.new_position.y] = p;
-        //checkForCapture(move, p, new ArrayList<>());
+        checkForCapture(move, p, new ArrayList<>());
     }
     public void setPionOnBoard(Move move, ArrayList<Move> pionsToRevive) {
         Pion p = board[move.old_position.x][move.old_position.y];

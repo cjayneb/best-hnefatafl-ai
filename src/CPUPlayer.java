@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 class CPUPlayer {
-    private static final int MAX_DEPTH = 2;
+    private static final int MAX_DEPTH = 0;
     private int numExploredNodes;
     private Pion cpu;
 
@@ -29,7 +29,7 @@ class CPUPlayer {
         for (Move currentMove : board.getPossibleMoves(this.cpu)) {
             numExploredNodes++;
             ArrayList<Move> pionsToRevive = new ArrayList<>();
-            board.setPionOnBoard(currentMove);
+            board.setPionOnBoard(currentMove, pionsToRevive);
             int score = minimaxAB(board, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
             board.revertMove(currentMove, new ArrayList<>());
             currentMove.setNumOfNodes(numExploredNodes);
