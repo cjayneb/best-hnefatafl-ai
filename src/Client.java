@@ -10,9 +10,9 @@ class Client {
     private static BufferedOutputStream output;
 
     // Game stuff
-
     private static CPUPlayer cpuPlayer;
     private static Board board;
+    private static Move previousMove;
 
 
     public static void main(String[] args) {
@@ -29,7 +29,7 @@ class Client {
 
                 // Début de la partie en joueur Rouge
                 if (cmd == '1') {
-                    cpuPlayer = new CPUPlayer(Pion.ROUGE);
+                    cpuPlayer = new CPUPlayer(Pion.RED);
                     startGame();
                     System.out.println("Nouvelle partie! Vous jouer rouge, entrez votre premier coup : ");
                     respond();
@@ -37,7 +37,7 @@ class Client {
               
                 // Début de la partie en joueur Noir
                 if (cmd == '2') {
-                    cpuPlayer = new CPUPlayer(Pion.NOIR);
+                    cpuPlayer = new CPUPlayer(Pion.BLACK);
                     startGame();
                     System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des rouges");
                 }
@@ -45,10 +45,11 @@ class Client {
                 // Le serveur demande le prochain coup
                 // Le message contient aussi le dernier coup joue.
                 if (cmd == '3') {
-                    String opponentMove = getLastServerMessage(16);
-                    System.out.println("Dernier coup :" + opponentMove);
+                    String opponentMoveStr = getLastServerMessage(16);
+                    System.out.println("Dernier coup :" + opponentMoveStr);
+                    Move opponentMove = new Move(opponentMoveStr);
 
-                    board.setPionOnBoard(new Move(opponentMove));
+                    board.setPionOnBoard(opponentMove);
                     board.show();
 
                     System.out.println("Entrez votre coup : ");
@@ -63,23 +64,28 @@ class Client {
 
                 // La partie est terminée
                 if (cmd == '5') {
-                    String opponentMove = getLastServerMessage(16);
-                    System.out.println("Partie Terminé. Le dernier coup joué est: " + opponentMove);
+                    String opponentMoveStr = getLastServerMessage(16);
+                    System.out.println("Partie Terminé. Le dernier coup joué est: " + opponentMoveStr);
+                    Move opponentMove = new Move(opponentMoveStr);
 
-                    board.setPionOnBoard(new Move(opponentMove));
+                    // So our board doesn't update when we receive the final move after winning
+                    if (!(previousMove.old_position.equals(opponentMove.old_position)
+                            && previousMove.new_position.equals(opponentMove.new_position))) {
+                        board.setPionOnBoard(opponentMove);
+                    }
                     board.show();
                 }
             }
         }
         catch (IOException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
     }
 
     private static void startGame() throws IOException {
         String serverInput = getLastServerMessage(1024);
         String[] boardValues = serverInput.split(" ");
-        board.setBoard(boardValues);
+        board.initializeBoard(boardValues);
         board.show();
     }
 
@@ -95,6 +101,7 @@ class Client {
         Move nextMove = getFastestMove(cpuPlayer.getNextMoveAB(board));
         board.setPionOnBoard(nextMove);
         board.show();
+        previousMove = nextMove;
         sendMoveToServer(nextMove.indexToString());
     }
 
