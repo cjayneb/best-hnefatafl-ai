@@ -1,8 +1,8 @@
 enum Pion {
-    ROUGE('R'),
-    NOIR('N'),
-    ROI('K'),
-    VIDE(' ');
+    RED('R'),
+    BLACK('B'),
+    KING('K'),
+    EMPTY(' ');
 
     private final char pion;
 
@@ -15,8 +15,8 @@ enum Pion {
     }
 
     public static Pion getOppositePion(Pion pion) {
-        if (pion == ROUGE) return NOIR;
-        return ROUGE;
+        if (pion == RED) return BLACK;
+        return RED;
     }
 
     @Override
