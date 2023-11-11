@@ -3,14 +3,27 @@ import java.util.Map;
 import java.awt.Point;
 
 public class Move {
-    Map<Character, Integer> letterToY = new HashMap<>();
+    public static Map<Character, Integer> letterToY = new HashMap<Character, Integer>() {{
+        put('A', 0);
+        put('B', 1);
+        put('C', 2);
+        put('D', 3);
+        put('E', 4);
+        put('F', 5);
+        put('G', 6);
+        put('H', 7);
+        put('I', 8);
+        put('J', 9);
+        put('K', 10);
+        put('L', 11);
+        put('M', 12);
+    }};
     public Point old_position;
     public Point new_position;
     public String s;
     private int numOfNodes;
 
     public Move(String s) {
-        InitHash();
         old_position = new Point();
         new_position = new Point();
         this.s = s;
@@ -18,25 +31,9 @@ public class Move {
     }
 
     public Move(int x_old, int y_old, int x_new, int y_new) {
-        InitHash();
         this.old_position = new Point(x_old, y_old);
         this.new_position = new Point(x_new, y_new);
         indexToString();
-    }
-    public void InitHash() {
-        letterToY.put('A', 0);
-        letterToY.put('B', 1);
-        letterToY.put('C', 2);
-        letterToY.put('D', 3);
-        letterToY.put('E', 4);
-        letterToY.put('F', 5);
-        letterToY.put('G', 6);
-        letterToY.put('H', 7);
-        letterToY.put('I', 8);
-        letterToY.put('J', 9);
-        letterToY.put('K', 10);
-        letterToY.put('L', 11);
-        letterToY.put('M', 12);
     }
 
     public Move stringToIndex() {
@@ -48,7 +45,7 @@ public class Move {
         return this;
     }
 
-    public Move indexToString() {
+    public String indexToString() {
         String old_position = "";
         String new_position = "";
         old_position += (char) (this.old_position.y + 'A');
@@ -56,7 +53,7 @@ public class Move {
         new_position += (char) (this.new_position.y + 'A');
         new_position += (13 - this.new_position.x);
         this.s = old_position + "-" + new_position;
-        return this;
+        return this.s;
     }
 
     public void setNumOfNodes(int numOfNodes) {
