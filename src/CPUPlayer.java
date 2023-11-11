@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 class CPUPlayer {
-    private static final int MAX_DEPTH = 0;
+    private static final int MAX_DEPTH = 2;
     private int numExploredNodes;
     private Pion cpu;
 
@@ -22,16 +22,15 @@ class CPUPlayer {
     }
 
     public ArrayList<Move> getNextMoveAB(Board board) {
-            ArrayList<Move> bestMoves = new ArrayList<>();
-            int bestScore = Integer.MIN_VALUE;
-            numExploredNodes = 0;
+        ArrayList<Move> bestMoves = new ArrayList<>();
+        int bestScore = Integer.MIN_VALUE;
 
         for (Move currentMove : board.getPossibleMoves(this.cpu)) {
+            numExploredNodes = 0;
             numExploredNodes++;
-            ArrayList<Move> pionsToRevive = new ArrayList<>();
-            board.setPionOnBoard(currentMove, pionsToRevive);
-            int score = minimaxAB(board, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
-            board.revertMove(currentMove, new ArrayList<>());
+            Board copy = new Board(board);
+            copy.setPionOnBoard(currentMove);
+            int score = minimaxAB(copy, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
             currentMove.setNumOfNodes(numExploredNodes);
 
             System.out.print("| Score: " + score + " | nodes: " + numExploredNodes);
@@ -50,8 +49,6 @@ class CPUPlayer {
     }
 
     public int minimaxAB(Board board, int depth, int alpha, int beta, boolean maximizingPlayer) {
-        numExploredNodes++;
-
         if (depth == 0 || board.gameIsDone()) {
             return board.evaluate(this.cpu);
         }
@@ -59,11 +56,11 @@ class CPUPlayer {
         if (maximizingPlayer) {
             int maxEval = Integer.MIN_VALUE;
             for (Move currentMove : board.getPossibleMoves(this.cpu)) {
-                ArrayList<Move> pionsToRevive = new ArrayList<>();
-                board.setPionOnBoard(currentMove, pionsToRevive);
-                int eval = minimaxAB(board, depth - 1, alpha, beta, false);
-                board.revertMove(currentMove, pionsToRevive);
+                numExploredNodes++;
+                Board copy = new Board(board);
+                copy.setPionOnBoard(currentMove);
 
+                int eval = minimaxAB(copy, depth - 1, alpha, beta, false);
                 maxEval = Math.max(maxEval, eval);
                 alpha = Math.max(alpha, eval);
                 if (beta <= alpha) {
@@ -75,11 +72,11 @@ class CPUPlayer {
         else {
             int minEval = Integer.MAX_VALUE;
             for (Move currentMove : board.getPossibleMoves(Pion.getOppositePion(this.cpu))) {
-                ArrayList<Move> pionsToRevive = new ArrayList<>();
-                board.setPionOnBoard(currentMove, pionsToRevive);
-                int eval = minimaxAB(board, depth - 1, alpha, beta, true);
-                board.revertMove(currentMove, pionsToRevive);
+                numExploredNodes++;
+                Board copy = new Board(board);
+                copy.setPionOnBoard(currentMove);
 
+                int eval = minimaxAB(copy, depth - 1, alpha, beta, true);
                 minEval = Math.min(minEval, eval);
                 beta = Math.min(beta, eval);
                 if (beta <= alpha) {

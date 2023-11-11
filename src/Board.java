@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.ArrayList;
 
 public class Board {
@@ -13,6 +14,15 @@ public class Board {
 
     public Pion[][] getBoard() {
         return board;
+    }
+
+    public Board(Board board) {
+        this.board = new Pion[BOARD_SIZE][BOARD_SIZE];
+        for (int x = 0; x < board.getBoard().length; x++) {
+            for (int y = 0; y < board.getBoard().length; y++) {
+                this.board[x][y] = board.getBoard()[x][y];
+            }
+        }
     }
 
     public void initializeBoard(String[] input) {
@@ -60,6 +70,9 @@ public class Board {
             else {
                 while (!isOutOfBoard(newX, newY) && isEmpty(newX, newY) && !isCorner(newX, newY)) {
                     if (isThrone(newX, newY)) {
+                        if (isKing(newX, newY)) {
+                            break;
+                        }
                         newX += dx;
                         newY += dy;
                         continue;
@@ -78,18 +91,7 @@ public class Board {
         Pion p = board[move.old_position.x][move.old_position.y];
         board[move.old_position.x][move.old_position.y] = Pion.EMPTY;
         board[move.new_position.x][move.new_position.y] = p;
-        checkForCapture(move, p, new ArrayList<>());
-    }
-    public void setPionOnBoard(Move move, ArrayList<Move> pionsToRevive) {
-        Pion p = board[move.old_position.x][move.old_position.y];
-        board[move.old_position.x][move.old_position.y] = Pion.EMPTY;
-        board[move.new_position.x][move.new_position.y] = p;
-    }
-
-    public void revertMove(Move move, ArrayList<Move> pionsToRevive) {
-        Pion p = board[move.new_position.x][move.new_position.y];
-        board[move.new_position.x][move.new_position.y] = Pion.EMPTY;
-        board[move.old_position.x][move.old_position.y] = p;
+        checkForCapture(move, p);
     }
 
     public boolean gameIsDone() {
@@ -97,7 +99,7 @@ public class Board {
     }
 
     public int evaluate(Pion pion) {
-        if (pion == Pion.RED) {
+        if (pion.isRed()) {
             return evaluateRed();
         }
         return evaluateBlack();
@@ -111,7 +113,7 @@ public class Board {
         return (int)(Math.random()*100);
     }
 
-    private void checkForCapture(Move move, Pion pion, ArrayList<Move> pionsToRevive) {
+    private void checkForCapture(Move move, Pion pion) {
         int x = move.new_position.x;
         int y = move.new_position.y;
         for (int[] direction : directions) {
@@ -234,5 +236,17 @@ public class Board {
             System.out.print(" " + alphabet[j] + "  ");
         }
         System.out.println();
+    }
+
+    public int getNumberOfPions() {
+        int counter = 0;
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board.length; y++) {
+                if (!isEmpty(x, y)) {
+                    counter++;
+                }
+            }
+        }
+        return counter;
     }
 }
