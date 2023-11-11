@@ -1,5 +1,7 @@
+import javax.swing.text.html.Option;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class Board {
     public static final int BOARD_SIZE = 13;
@@ -95,6 +97,56 @@ public class Board {
     }
 
     public boolean gameIsDone() {
+        return !kingFound() || kingInCorner() || noPionLeft();
+    }
+
+    private boolean noPionLeft() {
+        int numRedPions = 0;
+        int numBlackPions = 0;
+
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board.length; y++) {
+                if (isRed(x, y)) {
+                    numRedPions++;
+                }
+                if (isBlack(x, y)) {
+                    numBlackPions++;
+                }
+            }
+        }
+
+        return numRedPions == 0 || numBlackPions == 0;
+    }
+
+    private boolean kingInCorner() {
+        boolean kingIsInCorner = false;
+        Optional<Point> kingPos = getKingPosition();
+        if (kingPos.isPresent()) {
+            Point pos = kingPos.get();
+            kingIsInCorner = isCorner(pos.x, pos.y);
+        }
+        return kingIsInCorner;
+    }
+
+    private Optional<Point> getKingPosition() {
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board.length; y++) {
+                if (isKing(x, y)) {
+                    return Optional.of(new Point(x, y));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private boolean kingFound() {
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board.length; y++) {
+                if (isKing(x, y)) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
