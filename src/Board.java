@@ -17,7 +17,6 @@ public class Board {
     }
 
     public ArrayList<Move> getPossibleMoves(Pion player) {
-        Map<String, List<int[]>> allPossibleMoves = new HashMap<>();
         ArrayList<Move> possibleMoves = new ArrayList<>();
 
         for (int x = 0; x < board.length; x++) {
@@ -26,9 +25,6 @@ public class Board {
                         || ((board[x][y] == Pion.NOIR || board[x][y] == Pion.ROI) && player != Pion.ROUGE)) {
                     ArrayList<Move> moves = getPossibleMoves(x, y);
                     possibleMoves.addAll(moves);
-
-//                    String position = "x" + x + " y" + y;
-//                    allPossibleMoves.put(position, possibleMoves);
                 }
             }
         }
@@ -36,17 +32,15 @@ public class Board {
         return possibleMoves;
     }
 
-    private boolean isPlayerPion(int x, int y, Pion player) {
+    private boolean isOnTheSameTeam(int x, int y, Pion player) {
         if (x < 0 || y < 0 || x > 12 || y > 12) {
             return false;
         }
-        if (board[x][y] == Pion.VIDE && ((x == 6 && y == 6) || estCoin(x, y))) {
+        if (estVide(x, y) && (estTrone(x, y) || estCoin(x, y))) {
             return true;
         }
-        return (
-                (board[x][y] == Pion.ROUGE && player == Pion.ROUGE)
-                        || ((board[x][y] == Pion.NOIR || board[x][y] == Pion.ROI) && player != Pion.ROUGE)
-        );
+        return (board[x][y] == Pion.ROUGE && player == Pion.ROUGE)
+                || ((board[x][y] == Pion.NOIR || board[x][y] == Pion.ROI) && player != Pion.ROUGE);
     }
 
     private ArrayList<Move> getPossibleMoves(int x, int y) {
@@ -63,16 +57,15 @@ public class Board {
 
             // Parce que le roi peut aller dans les coins
             if (roi) {
-                while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && board[newX][newY] == Pion.VIDE) {
+                while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && estVide(newX, newY)) {
                     Move move = new Move(x, y, newX, newY);
                     possibleMoves.add(move);
-                    //possibleMoves.add(new int[]{newX, newY});
                     newX += dx;
                     newY += dy;
                 }
             }
             else {
-                while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && board[newX][newY] == Pion.VIDE && !estCoin(newX, newY)) {
+                while (newX >= 0 && newX < board.length && newY >= 0 && newY < board[0].length && estVide(newX, newY) && !estCoin(newX, newY)) {
                     if (newX == 6 && newY == 6) {
                         newX += dx;
                         newY += dy;
@@ -80,7 +73,6 @@ public class Board {
                     }
                     Move move = new Move(x, y, newX, newY);
                     possibleMoves.add(move);
-                    //possibleMoves.add(new int[]{newX, newY});
                     newX += dx;
                     newY += dy;
                 }
@@ -89,8 +81,17 @@ public class Board {
         return possibleMoves;
     }
 
-    private static boolean estCoin(int x, int y) {
-        return (x == 0 && (y == 0 || y == 12)) || (x == 12 && (y == 0 || y == 12));
+    private boolean estCoin(int x, int y) {
+        int lastBoardIndex = board.length - 1;
+        return (x == 0 && (y == 0 || y == lastBoardIndex)) || (x == lastBoardIndex && (y == 0 || y == lastBoardIndex));
+    }
+
+    private boolean estTrone(int x, int y) {
+        return (x == 6 && y == 6);
+    }
+
+    private boolean estVide(int x, int y) {
+        return board[x][y] == Pion.VIDE;
     }
 
     public void setPionOnBoard(Move move) {
@@ -155,15 +156,14 @@ public class Board {
             while (y >= 0 && y < board.length && x >= 0 && x < board.length) {
                 int differenceY = Math.abs(move.new_position.y - y);
                 int differenceX = Math.abs(move.new_position.x - x);
-                if ((differenceY % 2 == 1 || differenceX % 2 == 1) && (isPlayerPion(x, y, pion) || board[x][y] == Pion.VIDE)) {
+                if ((differenceY % 2 == 1 || differenceX % 2 == 1) && (isOnTheSameTeam(x, y, pion) || estVide(x, y))) {
                     break;
                 }
 
                 int nextX = x + dx;
                 int nextY = y + dy;
 
-                if (!isPlayerPion(x, y, pion) && isPlayerPion(nextX, nextY, pion)) {
-                    pionsToRevive.add(new Move(x, y, x, y));
+                if (!isOnTheSameTeam(x, y, pion) && isOnTheSameTeam(nextX, nextY, pion)) {
                     board[x][y] = Pion.VIDE;
                 }
 
