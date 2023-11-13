@@ -104,12 +104,109 @@ public class Board {
     }
 
     private int evaluateRed() {
-        return (int)(Math.random()*100);
+        Pion[][] board = this.getBoard();
+        if (isKingInCorner(board)) {
+            return -100;
+        }
+
+        // Check si chemin direct à un coin pour le roi
+        if (hasKingPathToCorner(board)) {
+            return -40;
+        }
+
+        //Check si le roi est toujours sur le board ou si il s'est fait capturer
+        if (!isKingOnBoard(board)) {
+            return 100;
+        }
+
+        return 0;
     }
 
     private int evaluateBlack() {
-        return (int)(Math.random()*100);
+        Pion[][] board = this.getBoard();
+
+        // Check si king arrive dans un coin
+        if (isKingInCorner(board)) {
+            return 100;
+        }
+
+        // Check si chemin direct à un coin pour le roi
+        if (hasKingPathToCorner(board)) {
+            return 90;
+        }
+
+        //Check si le roi est toujours sur le board ou si il s'est fait capturer
+        if (!isKingOnBoard(board)) {
+            return -100;
+        }
+
+        return 0;
+        //implementer des valeurs basse pour capture de pions, et valeur la plus basse pour capture du roi
+        //implementer valeur haute pour capture dún pion rouge
     }
+
+    private boolean isKingInCorner(Pion[][] board) {
+        return board[0][0] == Pion.KING || board[0][BOARD_SIZE - 1] == Pion.KING ||
+                board[BOARD_SIZE - 1][0] == Pion.KING || board[BOARD_SIZE - 1][BOARD_SIZE - 1] == Pion.KING;
+    }
+
+    private boolean hasKingPathToCorner(Pion[][] board) {
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if (board[i][j] == Pion.KING) {
+                    // Check le roi aux coins
+                    if (isPathClear(board, i, j, 0, 0) ||
+                            isPathClear(board, i, j, 0, BOARD_SIZE - 1) ||
+                            isPathClear(board, i, j, BOARD_SIZE - 1, 0) ||
+                            isPathClear(board, i, j, BOARD_SIZE - 1, BOARD_SIZE - 1)) {
+                        return true;
+                    }
+                    break;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isKingOnBoard(Pion[][] board) {
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if (board[i][j] == Pion.KING) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isPathClear(Pion[][] board, int startX, int startY, int endX, int endY) {
+        // A l'horizontale
+        if (startX == endX) {
+            int start = Math.min(startY, endY);
+            int end = Math.max(startY, endY);
+            for (int y = start + 1; y < end; y++) {
+                if (board[startX][y] != Pion.EMPTY) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // A la verticale
+        if (startY == endY) {
+            int start = Math.min(startX, endX);
+            int end = Math.max(startX, endX);
+            for (int x = start + 1; x < end; x++) {
+                if (board[x][startY] != Pion.EMPTY) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return false;
+    }
+
 
     private void checkForCapture(Move move, Pion pion, ArrayList<Move> pionsToRevive) {
         int x = move.new_position.x;
