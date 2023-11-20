@@ -52,7 +52,7 @@ class CPUPlayer {
 
     public int minimaxAB(Board board, int depth, int alpha, int beta, boolean maximizingPlayer) {
         if (depth == 0 || board.gameIsDone() || System.currentTimeMillis() - startTime >= TIME_LIMIT) {
-            return board.evaluate(maximizingPlayer, this.cpu);
+            return board.evaluate(this.cpu);
         }
 
         if (maximizingPlayer) {
