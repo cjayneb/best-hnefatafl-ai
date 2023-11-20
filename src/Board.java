@@ -150,69 +150,61 @@ public class Board {
         return false;
     }
 
-    public int evaluate(Pion pion) {
+    public int evaluate(Pion pion, int nombrePionRouge, int nombrePionNoir) {
         if (pion.isRed()) {
-            return evaluateRed();
+            return evaluateRed(nombrePionRouge, nombrePionNoir);
         }
-        return evaluateBlack();
+        return evaluateBlack(nombrePionRouge, nombrePionNoir);
     }
 
-    private int evaluateRed() {
-        Pion[][] board = this.getBoard();
-        if (isKingInCorner(board)) {
+    private int evaluateRed(int nombrePionRouge, int nombrePionNoir) {
+        if (isKingInCorner()) {
             return -100;
         }
 
         // Check si chemin direct à un coin pour le roi
-        if (hasKingPathToCorner(board)) {
+        if (hasKingPathToCorner()) {
             return -40;
         }
 
         //Check si le roi est toujours sur le board ou si il s'est fait capturer
-        if (!isKingOnBoard(board)) {
+        if (!isKingOnBoard()) {
             return 100;
         }
 
         return 0;
     }
 
-    private int evaluateBlack() {
-        Pion[][] board = this.getBoard();
+    private int evaluateBlack(int nombrePionRouge, int nombrePionNoir) { //ICi ça marche pas en fait, ça retourne, mais il peut y avoir plusieurs conditions en même temps
 
         // Check si king arrive dans un coin
-        if (isKingInCorner(board)) {
+        if (isKingInCorner()) {
             return 100;
         }
 
-        // Check si chemin direct à un coin pour le roi
-        if (hasKingPathToCorner(board)) {
-            return 90;
-        }
 
         //Check si le roi est toujours sur le board ou si il s'est fait capturer
-        if (!isKingOnBoard(board)) {
+        if (!isKingOnBoard()) {
             return -100;
         }
 
-        return 0;
-        //implementer des valeurs basse pour capture de pions, et valeur la plus basse pour capture du roi
-        //implementer valeur haute pour capture dún pion rouge
+        return getEvaluateGlobalNoir(nombrePionRouge, nombrePionNoir); //Comprends hasKingclearPath et pions mangés
     }
 
-    private boolean isKingInCorner(Pion[][] board) {
+    private boolean isKingInCorner() {
         return board[0][0] == Pion.KING || board[0][BOARD_SIZE - 1] == Pion.KING ||
                 board[BOARD_SIZE - 1][0] == Pion.KING || board[BOARD_SIZE - 1][BOARD_SIZE - 1] == Pion.KING;
     }
 
-    private boolean hasKingPathToCorner(Pion[][] board) {
+    private boolean hasKingPathToCorner() {
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
                 if (board[i][j] == Pion.KING) {
                     // Check le roi aux coins
-                    if (isPathClear(board, i, j, 0, 0) ||
-                            isPathClear(board, i, j, 0, BOARD_SIZE - 1) ||
-                            isPathClear(board, i, j, BOARD_SIZE - 1, 0) ||
-                            isPathClear(board, i, j, BOARD_SIZE - 1, BOARD_SIZE - 1)) {
+                    if (isPathClear(i, j, 0, 0) ||
+                            isPathClear(i, j, 0, BOARD_SIZE - 1) ||
+                            isPathClear(i, j, BOARD_SIZE - 1, 0) ||
+                            isPathClear(i, j, BOARD_SIZE - 1, BOARD_SIZE - 1)) {
                         return true;
                     }
                     break;
@@ -222,7 +214,7 @@ public class Board {
         return false;
     }
 
-    private boolean isKingOnBoard(Pion[][] board) {
+    private boolean isKingOnBoard() {
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
                 if (board[i][j] == Pion.KING) {
@@ -233,7 +225,7 @@ public class Board {
         return false;
     }
 
-    private boolean isPathClear(Pion[][] board, int startX, int startY, int endX, int endY) {
+    private boolean isPathClear(int startX, int startY, int endX, int endY) {
         // A l'horizontale
         if (startX == endX) {
             int start = Math.min(startY, endY);
@@ -397,5 +389,39 @@ public class Board {
             }
         }
         return counter;
+    }
+
+    public int getNumberOfPionsRouge(){
+        int counter = 0;
+        for(int x = 0; x < board.length; x++){
+            for(int y = 0; y < board.length; y++){
+                if(isRed(x,y)){
+                    counter++;
+                }
+            }
+        }
+        return counter;
+    }
+
+    public int getNumberOfPionsNoir(){
+        int counter = 0;
+        for(int x = 0; x < board.length; x++){
+            for(int y = 0; y < board.length; y++){
+                if(isBlack(x,y)){
+                    counter++;
+                }
+            }
+        }
+        return counter;
+    }
+
+    public int getEvaluateGlobalNoir(int nombrePionRouge, int nombrePionNoir){
+        int eval = 0;
+        eval += 5*(nombrePionRouge-getNumberOfPionsRouge());
+        eval -= 5*(nombrePionNoir - getNumberOfPionsNoir());
+        if(hasKingPathToCorner()){
+            eval += 20;
+        }
+        return eval;
     }
 }
