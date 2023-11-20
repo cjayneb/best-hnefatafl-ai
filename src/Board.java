@@ -150,9 +150,7 @@ public class Board {
         return false;
     }
 
-    public int evaluate(boolean isCurrentPlayer, Pion currentPlayer) {
-        Pion pion = isCurrentPlayer ? currentPlayer : Pion.getOppositePion(currentPlayer);
-
+    public int evaluate(Pion pion) {
         if (pion.isRed()) {
             return evaluateRed();
         }
