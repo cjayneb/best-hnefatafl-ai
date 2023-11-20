@@ -150,7 +150,9 @@ public class Board {
         return false;
     }
 
-    public int evaluate(Pion pion) {
+    public int evaluate(boolean isCurrentPlayer, Pion currentPlayer) {
+        Pion pion = isCurrentPlayer ? currentPlayer : Pion.getOppositePion(currentPlayer);
+
         if (pion.isRed()) {
             return evaluateRed();
         }
@@ -158,11 +160,11 @@ public class Board {
     }
 
     private int evaluateRed() {
-        return (int)(Math.random()*100);
+        return (int) (Math.random() * 100);
     }
 
     private int evaluateBlack() {
-        return (int)(Math.random()*100);
+        return (int) (Math.random() * 100);
     }
 
     private void checkForCapture(Move move, Pion pion) {
