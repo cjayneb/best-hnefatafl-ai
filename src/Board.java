@@ -179,11 +179,10 @@ public class Board {
                 int nextY = newY + dy;
 
                 if (!isOnTheSameTeam(newX, newY, pion) && canBeUsedToCapture(nextX, nextY, pion)) {
-                    if (isRed(x, y) && isKing(newX, newY)) {
-                        checkForKingCapture(newX, newY);
-                    } else  {
-                        board[newX][newY] = Pion.EMPTY;
-                    }
+                    board[newX][newY] = Pion.EMPTY;
+                }
+                if (isRed(x, y) && isKing(newX, newY)) {
+                    checkForKingCapture(newX, newY);
                 }
 
                 newX += dx;
