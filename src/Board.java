@@ -422,6 +422,9 @@ public class Board {
         if(hasKingPathToCorner()){
             eval += 20;
         }
+        if(getNumberOfPionsRouge() == 0){
+            eval = -90;
+        }
         return eval;
     }
 }
