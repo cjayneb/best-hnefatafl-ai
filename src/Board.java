@@ -158,11 +158,11 @@ public class Board {
     }
 
     private int evaluateRed() {
-        return (int)(Math.random()*100);
+        return (int) (Math.random() * 100);
     }
 
     private int evaluateBlack() {
-        return (int)(Math.random()*100);
+        return (int) (Math.random() * 100);
     }
 
     private void checkForCapture(Move move, Pion pion) {
