@@ -262,7 +262,7 @@ public class Board {
 
     private boolean isElligibleForCapture(int newX, int newY, int dx, int dy) {
         return !isOutOfBoard(newX, newY)
-                && (isCorner(newX, newY) || isThrone(newX, newY) || !isEmpty(newX, newY))
+                && (!isEmpty(newX, newY))
                 && !isOnTheSameTeam(newX - dx, newY - dy, board[newX][newY]);
     }
 
@@ -397,7 +397,7 @@ public class Board {
     public int getEvaluateGlobalNoir(int nombrePionRouge, int nombrePionNoir){
         int eval = 0;
         eval += 2*(nombrePionRouge-getNumberOfPionsRouge());
-        eval -= 5*(nombrePionNoir - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
+        eval -= 10*(nombrePionNoir - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
         if(hasKingPathToCorner()){
             eval += 20;
         }
