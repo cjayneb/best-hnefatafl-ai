@@ -157,8 +157,7 @@ public class Board {
         return evaluateBlack(nombrePionRouge, nombrePionNoir);
     }
 
-    private int evaluateBlack(int nombrePionRouge, int nombrePionNoir) { //ICi ça marche pas en fait, ça retourne, mais il peut y avoir plusieurs conditions en même temps
-
+    private int evaluateBlack(int nombrePionRouge, int nombrePionNoir) {
         // Check si king arrive dans un coin
         if (isKingInCorner()) {
             return 100;
