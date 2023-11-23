@@ -152,27 +152,9 @@ public class Board {
 
     public int evaluate(Pion pion, int nombrePionRouge, int nombrePionNoir) {
         if (pion.isRed()) {
-            return evaluateRed(nombrePionRouge, nombrePionNoir);
+            return -evaluateBlack(nombrePionRouge, nombrePionNoir);
         }
         return evaluateBlack(nombrePionRouge, nombrePionNoir);
-    }
-
-    private int evaluateRed(int nombrePionRouge, int nombrePionNoir) {
-        if (isKingInCorner()) {
-            return -100;
-        }
-
-        // Check si chemin direct à un coin pour le roi
-        if (hasKingPathToCorner()) {
-            return -40;
-        }
-
-        //Check si le roi est toujours sur le board ou si il s'est fait capturer
-        if (!isKingOnBoard()) {
-            return 100;
-        }
-
-        return 0;
     }
 
     private int evaluateBlack(int nombrePionRouge, int nombrePionNoir) { //ICi ça marche pas en fait, ça retourne, mais il peut y avoir plusieurs conditions en même temps
@@ -187,7 +169,6 @@ public class Board {
         if (!isKingOnBoard()) {
             return -100;
         }
-
         return getEvaluateGlobalNoir(nombrePionRouge, nombrePionNoir); //Comprends hasKingclearPath et pions mangés
     }
 
@@ -267,7 +248,7 @@ public class Board {
                 int nextX = newX + dx;
                 int nextY = newY + dy;
 
-                if (!isOnTheSameTeam(newX, newY, pion) && canBeUsedToCapture(nextX, nextY, pion)) {
+                if (!isKing(newX, newY) && !isOnTheSameTeam(newX, newY, pion) && canBeUsedToCapture(nextX, nextY, pion)) {
                     board[newX][newY] = Pion.EMPTY;
                 }
                 if (isRed(x, y) && isKing(newX, newY)) {
@@ -406,7 +387,7 @@ public class Board {
         int counter = 0;
         for(int x = 0; x < board.length; x++){
             for(int y = 0; y < board.length; y++){
-                if(isBlack(x,y)){
+                if(isBlack(x,y) && isKing(x,y)){
                     counter++;
                 }
             }
@@ -416,8 +397,8 @@ public class Board {
 
     public int getEvaluateGlobalNoir(int nombrePionRouge, int nombrePionNoir){
         int eval = 0;
-        eval += 5*(nombrePionRouge-getNumberOfPionsRouge());
-        eval -= 5*(nombrePionNoir - getNumberOfPionsNoir());
+        eval += 2*(nombrePionRouge-getNumberOfPionsRouge());
+        eval -= 5*(nombrePionNoir - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
         if(hasKingPathToCorner()){
             eval += 20;
         }
