@@ -14,7 +14,6 @@ class Client {
     private static Board board;
     private static Move previousMove;
 
-
     public static void main(String[] args) {
         board = new Board();
       
