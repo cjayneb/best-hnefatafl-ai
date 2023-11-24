@@ -34,7 +34,12 @@ class CPUPlayer {
             int score = minimaxAB(copy, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false, nombrePionRouge, nombrePionNoir);
             currentMove.setNumOfNodes(numExploredNodes);
 
-            System.out.print("| Score: " + score + " | nodes: " + numExploredNodes);
+            System.out.print(currentMove.indexToString() + " | Score: " + score + " | nodes: " + numExploredNodes);
+            if (score == 100 && numExploredNodes == 1) {
+                bestMoves.clear();
+                bestMoves.add(currentMove);
+                break;
+            }
 
             if (score > bestScore) {
                 bestScore = score;

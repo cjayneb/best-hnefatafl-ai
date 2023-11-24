@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.time.Clock;
 import java.util.*;
 
 class Client {
@@ -14,6 +13,7 @@ class Client {
     private static CPUPlayer cpuPlayer;
     private static Board board;
     private static Move previousMove;
+    public static long start;
 
 
     public static void main(String[] args) {
@@ -26,7 +26,7 @@ class Client {
 
             while (true) {
                 char cmd = (char)input.read();
-                long start = System.currentTimeMillis();
+                start = System.currentTimeMillis();
                 System.out.println(cmd);
 
                 // Début de la partie en joueur Rouge
@@ -35,7 +35,7 @@ class Client {
                     startGame();
                     System.out.println("Nouvelle partie! Vous jouer rouge, entrez votre premier coup : ");
                     respond();
-                    logTime(start);
+                    logTime();
                 }
               
                 // Début de la partie en joueur Noir
@@ -43,7 +43,7 @@ class Client {
                     cpuPlayer = new CPUPlayer(Pion.BLACK);
                     startGame();
                     System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des rouges");
-                    logTime(start);
+                    logTime();
                 }
 
                 // Le serveur demande le prochain coup
@@ -58,14 +58,14 @@ class Client {
 
                     System.out.println("Entrez votre coup : ");
                     respond();
-                    logTime(start);
+                    logTime();
                 }
 
                 // Le dernier coup est invalide
                 if (cmd == '4') {
                     System.out.println("Coup invalide, entrez un nouveau coup : ");
                     respond();
-                    logTime(start);
+                    logTime();
                 }
 
                 // La partie est terminée
@@ -88,7 +88,7 @@ class Client {
         }
     }
 
-    private static void logTime(long start) {
+    private static void logTime() {
         long timeToRespond = System.currentTimeMillis() - start;
         if (timeToRespond > 5000) {
             System.out.println("Took too long to respond! Game lost :(");
