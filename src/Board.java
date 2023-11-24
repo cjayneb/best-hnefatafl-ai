@@ -389,7 +389,7 @@ public class Board {
             eval -= 5 * getNumberOfCapturersAroundKing();
         }
         if(hasKingPathToCorner()){
-            eval += 20;
+            eval += 40;
         }
         if(getNumberOfPionsRouge() == 0){
             eval = -90;

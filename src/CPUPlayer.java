@@ -1,23 +1,17 @@
-import java.util.ArrayList;
+import java.util.*;
 
 class CPUPlayer {
     private static final int MAX_DEPTH = 2;
+    private static final int TIME_LIMIT = 5000;
+    private static long startTime;
     private int numExploredNodes;
-    private Pion cpu;
+    private final Pion cpu;
 
     public CPUPlayer(Pion cpu) {
         this.cpu = cpu;
     }
 
-    public Pion getPion() {
-        return cpu;
-    }
-
-    public void setPion(Pion pion) {
-        this.cpu = pion;
-    }
-
-    public int  getNumOfExploredNodes(){
+    public int getNumOfExploredNodes(){
         return numExploredNodes;
     }
 
@@ -26,15 +20,17 @@ class CPUPlayer {
         int nombrePionNoir = board.getNumberOfPionsNoir();
         ArrayList<Move> bestMoves = new ArrayList<>();
         int bestScore = Integer.MIN_VALUE;
+        startTime = System.currentTimeMillis();
         for (Move currentMove : board.getPossibleMoves(this.cpu)) {
             numExploredNodes = 0;
             numExploredNodes++;
+
             Board copy = new Board(board);
             copy.setPionOnBoard(currentMove);
             int score = minimaxAB(copy, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false, nombrePionRouge, nombrePionNoir);
             currentMove.setNumOfNodes(numExploredNodes);
 
-            System.out.print(currentMove.indexToString() + " | Score: " + score + " | nodes: " + numExploredNodes);
+            System.out.println(currentMove.indexToString() + " | Score: " + score + " | nodes: " + numExploredNodes);
             if (score == 100 && numExploredNodes == 1) {
                 bestMoves.clear();
                 bestMoves.add(currentMove);
@@ -49,13 +45,18 @@ class CPUPlayer {
             else if (score == bestScore) {
                 bestMoves.add(currentMove);
             }
-            System.out.println();
+
+            // Check if time limit exceeded
+            if (System.currentTimeMillis() - startTime >= TIME_LIMIT + 200) {
+                System.out.println("\nTime limit exceeded!");
+                break;
+            }
         }
         return bestMoves;
     }
 
     public int minimaxAB(Board board, int depth, int alpha, int beta, boolean maximizingPlayer, int nombrePionRouge, int nombrePionNoir) {
-        if (depth == 0 || board.gameIsDone()) {
+        if (depth == 0 || board.gameIsDone() || System.currentTimeMillis() - startTime >= TIME_LIMIT) {
             return board.evaluate(this.cpu, nombrePionRouge, nombrePionNoir);
         }
 
@@ -92,5 +93,4 @@ class CPUPlayer {
             return minEval;
         }
     }
-
 }
