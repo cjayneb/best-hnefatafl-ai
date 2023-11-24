@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.time.Clock;
 import java.util.*;
 
 class Client {
@@ -26,7 +25,6 @@ class Client {
 
             while (true) {
                 char cmd = (char)input.read();
-                long start = System.currentTimeMillis();
                 System.out.println(cmd);
 
                 // Début de la partie en joueur Rouge
@@ -35,7 +33,6 @@ class Client {
                     startGame();
                     System.out.println("Nouvelle partie! Vous jouer rouge, entrez votre premier coup : ");
                     respond();
-                    logTime(start);
                 }
               
                 // Début de la partie en joueur Noir
@@ -43,7 +40,6 @@ class Client {
                     cpuPlayer = new CPUPlayer(Pion.BLACK);
                     startGame();
                     System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des rouges");
-                    logTime(start);
                 }
 
                 // Le serveur demande le prochain coup
@@ -58,14 +54,12 @@ class Client {
 
                     System.out.println("Entrez votre coup : ");
                     respond();
-                    logTime(start);
                 }
 
                 // Le dernier coup est invalide
                 if (cmd == '4') {
                     System.out.println("Coup invalide, entrez un nouveau coup : ");
                     respond();
-                    logTime(start);
                 }
 
                 // La partie est terminée
@@ -86,14 +80,6 @@ class Client {
         catch (IOException e) {
             System.out.println(e.getMessage());
         }
-    }
-
-    private static void logTime(long start) {
-        long timeToRespond = System.currentTimeMillis() - start;
-        if (timeToRespond > 5000) {
-            System.out.println("Took too long to respond! Game lost :(");
-        }
-        System.out.println("Time to respond: " + timeToRespond + "ms");
     }
 
     private static void startGame() throws IOException {
