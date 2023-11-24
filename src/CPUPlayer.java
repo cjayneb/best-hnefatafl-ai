@@ -16,18 +16,19 @@ class CPUPlayer {
     }
 
     public ArrayList<Move> getNextMoveAB(Board board) {
+        int nombrePionRouge = board.getNumberOfPionsRouge();
+        int nombrePionNoir = board.getNumberOfPionsNoir();
         ArrayList<Move> bestMoves = new ArrayList<>();
         int bestScore = Integer.MIN_VALUE;
-        startTime = System.currentTimeMillis();
 
+        startTime = System.currentTimeMillis();
         for (Move currentMove : board.getPossibleMoves(this.cpu)) {
             numExploredNodes = 0;
             numExploredNodes++;
 
             Board copy = new Board(board);
             copy.setPionOnBoard(currentMove);
-
-            int score = minimaxAB(copy, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, MAX_DEPTH % 2 != 0);
+            int score = minimaxAB(copy, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false, nombrePionRouge, nombrePionNoir);
             currentMove.setNumOfNodes(numExploredNodes);
 
             System.out.println("| Score: " + score + " | nodes: " + numExploredNodes);
@@ -50,7 +51,7 @@ class CPUPlayer {
         return bestMoves;
     }
 
-    public int minimaxAB(Board board, int depth, int alpha, int beta, boolean maximizingPlayer) {
+    public int minimaxAB(Board board, int depth, int alpha, int beta, boolean maximizingPlayer, int nombrePionRouge, int nombrePionNoir) {
         if (depth == 0 || board.gameIsDone() || System.currentTimeMillis() - startTime >= TIME_LIMIT) {
             return board.evaluate(this.cpu);
         }
@@ -62,7 +63,7 @@ class CPUPlayer {
                 Board copy = new Board(board);
                 copy.setPionOnBoard(currentMove);
 
-                int eval = minimaxAB(copy, depth - 1, alpha, beta, false);
+                int eval = minimaxAB(copy, depth - 1, alpha, beta, false, nombrePionRouge, nombrePionNoir);
                 maxEval = Math.max(maxEval, eval);
                 alpha = Math.max(alpha, eval);
                 if (beta <= alpha) {
@@ -78,7 +79,7 @@ class CPUPlayer {
                 Board copy = new Board(board);
                 copy.setPionOnBoard(currentMove);
 
-                int eval = minimaxAB(copy, depth - 1, alpha, beta, true);
+                int eval = minimaxAB(copy, depth - 1, alpha, beta, true, nombrePionRouge, nombrePionNoir);
                 minEval = Math.min(minEval, eval);
                 beta = Math.min(beta, eval);
                 if (beta <= alpha) {
