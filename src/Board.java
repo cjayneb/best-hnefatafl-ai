@@ -1,4 +1,3 @@
-import javax.swing.text.html.Option;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -118,16 +117,6 @@ public class Board {
         return numRedPions == 0 || numBlackPions == 0;
     }
 
-    private boolean kingInCorner() {
-        boolean kingIsInCorner = false;
-        Optional<Point> kingPos = getKingPosition();
-        if (kingPos.isPresent()) {
-            Point pos = kingPos.get();
-            kingIsInCorner = isCorner(pos.x, pos.y);
-        }
-        return kingIsInCorner;
-    }
-
     private Optional<Point> getKingPosition() {
         for (int x = 0; x < board.length; x++) {
             for (int y = 0; y < board.length; y++) {
@@ -152,26 +141,25 @@ public class Board {
 
     public int evaluate(Pion pion, int nombrePionRouge, int nombrePionNoir) {
         if (pion.isRed()) {
-            return -evaluateBlack(nombrePionRouge, nombrePionNoir);
+            return -evaluateBlack(nombrePionRouge, nombrePionNoir, pion);
         }
-        return evaluateBlack(nombrePionRouge, nombrePionNoir);
+        return evaluateBlack(nombrePionRouge, nombrePionNoir, pion);
     }
 
-    private int evaluateBlack(int nombrePionRouge, int nombrePionNoir) {
+    private int evaluateBlack(int nombrePionRouge, int nombrePionNoir, Pion pion) {
         // Check si king arrive dans un coin
-        if (isKingInCorner()) {
+        if (kingInCorner()) {
             return 100;
         }
-
 
         //Check si le roi est toujours sur le board ou si il s'est fait capturer
         if (!isKingOnBoard()) {
             return -100;
         }
-        return getEvaluateGlobalNoir(nombrePionRouge, nombrePionNoir); //Comprends hasKingclearPath et pions mangés
+        return getEvaluateGlobalNoir(nombrePionRouge, nombrePionNoir, pion); //Comprends hasKingclearPath et pions mangés
     }
 
-    private boolean isKingInCorner() {
+    private boolean kingInCorner() {
         return board[0][0] == Pion.KING || board[0][BOARD_SIZE - 1] == Pion.KING ||
                 board[BOARD_SIZE - 1][0] == Pion.KING || board[BOARD_SIZE - 1][BOARD_SIZE - 1] == Pion.KING;
     }
@@ -243,26 +231,23 @@ public class Board {
             int newX = move.new_position.x + dx;
             int newY = move.new_position.y + dy;
 
-            while (isElligibleForCapture(newX, newY, dx, dy)) {
-                int nextX = newX + dx;
-                int nextY = newY + dy;
+            int nextX = newX + dx;
+            int nextY = newY + dy;
 
+            if (isElligibleForCapture(newX, newY, dx, dy)) {
                 if (!isKing(newX, newY) && !isOnTheSameTeam(newX, newY, pion) && canBeUsedToCapture(nextX, nextY, pion)) {
                     board[newX][newY] = Pion.EMPTY;
                 }
                 if (isRed(x, y) && isKing(newX, newY)) {
                     checkForKingCapture(newX, newY);
                 }
-
-                newX += dx;
-                newY += dy;
             }
         }
     }
 
     private boolean isElligibleForCapture(int newX, int newY, int dx, int dy) {
         return !isOutOfBoard(newX, newY)
-                && (isCorner(newX, newY) || isThrone(newX, newY) || !isEmpty(newX, newY))
+                && (!isEmpty(newX, newY))
                 && !isOnTheSameTeam(newX - dx, newY - dy, board[newX][newY]);
     }
 
@@ -394,16 +379,40 @@ public class Board {
         return counter;
     }
 
-    public int getEvaluateGlobalNoir(int nombrePionRouge, int nombrePionNoir){
+    public int getEvaluateGlobalNoir(int nombrePionRouge, int nombrePionNoir, Pion pion){
         int eval = 0;
         eval += 2*(nombrePionRouge-getNumberOfPionsRouge());
-        eval -= 5*(nombrePionNoir - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
+        eval -= 10*(nombrePionNoir - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
+
+        if (pion.isRed()) {
+            eval -= 5 * getNumberOfCapturersAroundKing();
+        }
         if(hasKingPathToCorner()){
-            eval += 20;
+            eval += 40;
         }
         if(getNumberOfPionsRouge() == 0){
             eval = -90;
         }
+
         return eval;
+    }
+
+    private int getNumberOfCapturersAroundKing() {
+        int numOfCapturers = 0;
+        Point kingPosition = getKingPosition().get();
+        int kingX = kingPosition.x;
+        int kingY = kingPosition.y;
+
+        for (int[] direction : directions) {
+            int dx = direction[0];
+            int dy = direction[1];
+            int newX = kingX + dx;
+            int newY = kingY + dy;
+
+            if (isOutOfBoard(newX, newY) || isRed(newX, newY) || isCorner(newX, newY) || isThrone(newX, newY)) {
+                numOfCapturers++;
+            }
+        }
+        return numOfCapturers;
     }
 }

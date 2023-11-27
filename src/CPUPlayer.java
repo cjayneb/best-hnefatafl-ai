@@ -20,7 +20,6 @@ class CPUPlayer {
         int nombrePionNoir = board.getNumberOfPionsNoir();
         ArrayList<Move> bestMoves = new ArrayList<>();
         int bestScore = Integer.MIN_VALUE;
-
         startTime = System.currentTimeMillis();
         for (Move currentMove : board.getPossibleMoves(this.cpu)) {
             numExploredNodes = 0;
@@ -31,7 +30,12 @@ class CPUPlayer {
             int score = minimaxAB(copy, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false, nombrePionRouge, nombrePionNoir);
             currentMove.setNumOfNodes(numExploredNodes);
 
-            System.out.println("| Score: " + score + " | nodes: " + numExploredNodes);
+            System.out.println(currentMove.indexToString() + " | Score: " + score + " | nodes: " + numExploredNodes);
+            if (score == 100 && numExploredNodes == 1) {
+                bestMoves.clear();
+                bestMoves.add(currentMove);
+                break;
+            }
 
             if (score > bestScore) {
                 bestScore = score;
@@ -53,7 +57,7 @@ class CPUPlayer {
 
     public int minimaxAB(Board board, int depth, int alpha, int beta, boolean maximizingPlayer, int nombrePionRouge, int nombrePionNoir) {
         if (depth == 0 || board.gameIsDone() || System.currentTimeMillis() - startTime >= TIME_LIMIT) {
-            return board.evaluate(this.cpu);
+            return board.evaluate(this.cpu, nombrePionRouge, nombrePionNoir);
         }
 
         if (maximizingPlayer) {
