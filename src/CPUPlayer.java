@@ -23,8 +23,6 @@ class CPUPlayer {
         int rootNodesCounter = 0;
         startTime = System.currentTimeMillis();
 
-        int remainingMoves = board.getPossibleMoves(this.cpu).size();
-
         for (Move currentMove : board.getPossibleMoves(this.cpu)) {
             numExploredNodes = 0;
             numExploredNodes++;
@@ -33,7 +31,7 @@ class CPUPlayer {
             Board copy = new Board(board);
             copy.setPionOnBoard(currentMove);
 
-            int maxDepth = determineDynamicDepth(remainingMoves, MIN_DEPTH);
+            int maxDepth = determineDynamicDepth();
 
             int score = minimaxAB(copy, maxDepth, Integer.MIN_VALUE, Integer.MAX_VALUE, false, nombrePionRouge, nombrePionNoir);
             currentMove.setNumOfNodes(numExploredNodes);
@@ -53,8 +51,6 @@ class CPUPlayer {
                 bestMoves.add(currentMove);
             }
 
-            remainingMoves--;
-
             // Check if time limit exceeded
             if (System.currentTimeMillis() - startTime >= TIME_LIMIT + 20) {
                 System.out.println("\nTime limit exceeded!");
@@ -65,11 +61,11 @@ class CPUPlayer {
         return bestMoves;
     }
 
-    private int determineDynamicDepth(int remainingMoves, int minDepth) {
+    private int determineDynamicDepth() {
         long elapsedTime = System.currentTimeMillis() - startTime;
-        int maxDepth = minDepth;
+        int maxDepth = MIN_DEPTH;
 
-        if (remainingMoves > 20 && elapsedTime < 0.8 * TIME_LIMIT) {
+        if (elapsedTime < 0.9 * TIME_LIMIT) {
             maxDepth = 3;
         }
 
