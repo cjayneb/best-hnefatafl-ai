@@ -21,6 +21,11 @@ class CPUPlayer {
         ArrayList<Move> bestMoves = new ArrayList<>();
         int bestScore = Integer.MIN_VALUE;
         startTime = System.currentTimeMillis();
+
+        board.setInitialNumOfReds(board.getNumberOfPionsRouge());
+        board.setInitialNumOfBlacks(board.getNumberOfPionsNoir());
+        board.setInitialNumOfCapturersAroundKing(board.getNumberOfCapturersAroundKing());
+
         for (Move currentMove : board.getPossibleMoves(this.cpu)) {
             numExploredNodes = 0;
             numExploredNodes++;
@@ -57,7 +62,7 @@ class CPUPlayer {
 
     public int minimaxAB(Board board, int depth, int alpha, int beta, boolean maximizingPlayer, int nombrePionRouge, int nombrePionNoir) {
         if (depth == 0 || board.gameIsDone() || System.currentTimeMillis() - startTime >= TIME_LIMIT) {
-            return board.evaluate(this.cpu, nombrePionRouge, nombrePionNoir);
+            return board.evaluate(this.cpu);
         }
 
         if (maximizingPlayer) {
