@@ -7,15 +7,18 @@ class CPUPlayer {
     private int numExploredNodes;
     private final Pion cpu;
 
+    private Queue<Move> lastMoves;
+
     public CPUPlayer(Pion cpu) {
         this.cpu = cpu;
+        lastMoves = new ArrayDeque<>(2);
     }
 
     public int getNumOfExploredNodes(){
         return numExploredNodes;
     }
 
-    public ArrayList<Move> getNextMoveAB(Board board) {
+    public Move getNextMoveAB(Board board) {
         int nombrePionRouge = board.getNumberOfPionsRouge();
         int nombrePionNoir = board.getNumberOfPionsNoir();
         ArrayList<Move> bestMoves = new ArrayList<>();
@@ -52,7 +55,17 @@ class CPUPlayer {
                 break;
             }
         }
-        return bestMoves;
+        Move bestMove = getFastestMove(bestMoves);
+        if (!lastMoves.isEmpty() && lastMoves.peek().indexToString().equals(bestMove.indexToString())) {
+            bestMoves.remove(bestMove);
+            bestMove = getFastestMove(bestMoves);
+        }
+        if (lastMoves.size() == 2) {
+            lastMoves.poll();
+        }
+        lastMoves.add(bestMove);
+
+        return bestMove;
     }
 
     public int minimaxAB(Board board, int depth, int alpha, int beta, boolean maximizingPlayer, int nombrePionRouge, int nombrePionNoir) {
@@ -92,5 +105,10 @@ class CPUPlayer {
             }
             return minEval;
         }
+    }
+
+    public static Move getFastestMove(ArrayList<Move> moves) {
+        Optional<Move> theMove = moves.stream().min(Comparator.comparing(Move::getNumOfNodes));
+        return theMove.get();
     }
 }
