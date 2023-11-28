@@ -2,7 +2,7 @@ import java.util.*;
 
 class CPUPlayer {
     private static final int MIN_DEPTH = 2;
-    private static final int TIME_LIMIT = 5000;
+    private static final int TIME_LIMIT = 4990;
     private static long startTime;
     private int numExploredNodes;
     private final Pion cpu;
@@ -52,7 +52,7 @@ class CPUPlayer {
             }
 
             // Check if time limit exceeded
-            if (System.currentTimeMillis() - startTime >= TIME_LIMIT + 20) {
+            if (System.currentTimeMillis() - startTime >= TIME_LIMIT) {
                 System.out.println("\nTime limit exceeded!");
                 break;
             }
