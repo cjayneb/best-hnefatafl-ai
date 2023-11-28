@@ -2,7 +2,7 @@ import java.util.*;
 
 class CPUPlayer {
     private static final int MAX_DEPTH = 2;
-    private static final int TIME_LIMIT = 5000;
+    private static final int TIME_LIMIT = 4800;
     private static long startTime;
     private int numExploredNodes;
     private final Pion cpu;

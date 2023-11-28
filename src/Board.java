@@ -96,7 +96,7 @@ public class Board {
     }
 
     public boolean gameIsDone() {
-        return !kingFound() || kingInCorner() || noPionLeft();
+        return !kingFound() || kingInCorner() || noPionLeft() || !canRedStillPlay() || !canBlackStillPlay();
     }
 
     private boolean noPionLeft() {
@@ -379,6 +379,32 @@ public class Board {
         return counter;
     }
 
+    public boolean canRedStillPlay(){
+        for(int x = 0; x < board.length; x++){
+            for(int y = 0; y < board.length; y++){
+                if(isRed(x,y)){
+                    if(!getPossibleMoves(x, y).isEmpty()){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean canBlackStillPlay(){
+        for(int x = 0; x < board.length; x++){
+            for(int y = 0; y < board.length; y++){
+                if(isBlack(x,y)){
+                    if(!getPossibleMoves(x, y).isEmpty()){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public int getEvaluateGlobalNoir(int nombrePionRouge, int nombrePionNoir, Pion pion){
         int eval = 0;
         eval += 2*(nombrePionRouge-getNumberOfPionsRouge());
@@ -390,8 +416,11 @@ public class Board {
         if(hasKingPathToCorner()){
             eval += 40;
         }
-        if(getNumberOfPionsRouge() == 0){
+        if(!canRedStillPlay()){
             eval = -90;
+        }
+        if(!canBlackStillPlay()){
+            eval = 90;
         }
 
         return eval;
