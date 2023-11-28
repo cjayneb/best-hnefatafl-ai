@@ -4,10 +4,11 @@ import java.util.Optional;
 
 public class Board {
     public static final int BOARD_SIZE = 13;
-
     private Pion[][] board;
-
     private static final int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    private int initialNumOfReds;
+    private int initialNumOfBlacks;
+    private int initialNumOfCapturersAroundKing;
 
     public Board() {
         this.board = new Pion[BOARD_SIZE][BOARD_SIZE];
@@ -24,6 +25,9 @@ public class Board {
                 this.board[x][y] = board.getBoard()[x][y];
             }
         }
+        this.initialNumOfReds = board.getInitialNumOfReds();
+        this.initialNumOfBlacks = board.getInitialNumOfBlacks();
+        this.initialNumOfCapturersAroundKing = board.getInitialNumOfCapturersAroundKing();
     }
 
     public void initializeBoard(String[] input) {
@@ -96,7 +100,7 @@ public class Board {
     }
 
     public boolean gameIsDone() {
-        return !kingFound() || kingInCorner() || noPionLeft() || !canRedStillPlay() || !canBlackStillPlay();
+        return !kingFound() || kingInCorner() || noPionLeft() || redCantStillPlay() || blackCantStillPlay();
     }
 
     private boolean noPionLeft() {
@@ -139,14 +143,14 @@ public class Board {
         return false;
     }
 
-    public int evaluate(Pion pion, int nombrePionRouge, int nombrePionNoir) {
+    public int evaluate(Pion pion) {
         if (pion.isRed()) {
-            return -evaluateBlack(nombrePionRouge, nombrePionNoir, pion);
+            return evaluateRed();
         }
-        return evaluateBlack(nombrePionRouge, nombrePionNoir, pion);
+        return evaluateBlack();
     }
 
-    private int evaluateBlack(int nombrePionRouge, int nombrePionNoir, Pion pion) {
+    private int commonEvaluate() {
         // Check si king arrive dans un coin
         if (kingInCorner()) {
             return 100;
@@ -156,7 +160,32 @@ public class Board {
         if (!isKingOnBoard()) {
             return -100;
         }
-        return getEvaluateGlobalNoir(nombrePionRouge, nombrePionNoir, pion); //Comprends hasKingclearPath et pions mangés
+
+        int eval = 0;
+        eval += 2 * (initialNumOfReds - getNumberOfPionsRouge());
+        eval -= 10 * (initialNumOfBlacks - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
+
+        if (hasKingPathToCorner()) {
+            eval += 40;
+        }
+        if (getNumberOfPionsRouge() == 0) {
+            eval = -90;
+        }
+
+        return eval;
+    }
+
+    public int evaluateBlack() {
+        int eval = commonEvaluate();
+        return eval;
+    }
+
+    public int evaluateRed() {
+        int eval = -commonEvaluate();
+
+        eval -= 5 * (initialNumOfCapturersAroundKing - getNumberOfCapturersAroundKing());
+
+        return eval;
     }
 
     private boolean kingInCorner() {
@@ -379,55 +408,58 @@ public class Board {
         return counter;
     }
 
-    public boolean canRedStillPlay(){
-        for(int x = 0; x < board.length; x++){
-            for(int y = 0; y < board.length; y++){
-                if(isRed(x,y)){
-                    if(!getPossibleMoves(x, y).isEmpty()){
-                        return true;
+    public boolean redCantStillPlay() {
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board.length; y++) {
+                if (isRed(x,y)){
+                    if (!getPossibleMoves(x, y).isEmpty()) {
+                        return false;
                     }
                 }
             }
         }
-        return false;
+        return true;
     }
 
-    public boolean canBlackStillPlay(){
-        for(int x = 0; x < board.length; x++){
-            for(int y = 0; y < board.length; y++){
-                if(isBlack(x,y)){
-                    if(!getPossibleMoves(x, y).isEmpty()){
-                        return true;
+    public boolean blackCantStillPlay(){
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board.length; y++) {
+                if (isBlack(x,y)) {
+                    if (!getPossibleMoves(x, y).isEmpty()) {
+                        return false;
                     }
                 }
             }
         }
-        return false;
+        return true;
     }
 
-    public int getEvaluateGlobalNoir(int nombrePionRouge, int nombrePionNoir, Pion pion){
+    public int getEvaluateGlobalNoir(int nombrePionRouge, int nombrePionNoir, Pion pion) {
         int eval = 0;
         eval += 2*(nombrePionRouge-getNumberOfPionsRouge());
-        eval -= 10*(nombrePionNoir - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
+        eval -= 10*(nombrePionNoir - getNumberOfPionsNoir()); // Plus de points parce que y a moins de pions noir que rouge
 
         if (pion.isRed()) {
             eval -= 5 * getNumberOfCapturersAroundKing();
         }
-        if(hasKingPathToCorner()){
+        if (hasKingPathToCorner()) {
             eval += 40;
         }
-        if(!canRedStillPlay()){
+        if (redCantStillPlay()) {
             eval = -90;
         }
-        if(!canBlackStillPlay()){
+        if (blackCantStillPlay()) {
             eval = 90;
         }
 
         return eval;
     }
 
-    private int getNumberOfCapturersAroundKing() {
+    public int getNumberOfCapturersAroundKing() {
         int numOfCapturers = 0;
+        if (getKingPosition().isEmpty()) {
+            return numOfCapturers;
+        }
         Point kingPosition = getKingPosition().get();
         int kingX = kingPosition.x;
         int kingY = kingPosition.y;
@@ -443,5 +475,29 @@ public class Board {
             }
         }
         return numOfCapturers;
+    }
+
+    public int getInitialNumOfReds() {
+        return initialNumOfReds;
+    }
+
+    public void setInitialNumOfReds(int initialNumOfReds) {
+        this.initialNumOfReds = initialNumOfReds;
+    }
+
+    public int getInitialNumOfBlacks() {
+        return initialNumOfBlacks;
+    }
+
+    public void setInitialNumOfBlacks(int initialNumOfBlacks) {
+        this.initialNumOfBlacks = initialNumOfBlacks;
+    }
+
+    public int getInitialNumOfCapturersAroundKing() {
+        return initialNumOfCapturersAroundKing;
+    }
+
+    public void setInitialNumOfCapturersAroundKing(int initialNumOfCapturersAroundKing) {
+        this.initialNumOfCapturersAroundKing = initialNumOfCapturersAroundKing;
     }
 }
