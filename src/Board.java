@@ -103,7 +103,7 @@ public class Board {
     }
 
     public boolean gameIsDone() {
-        return !kingFound() || kingInCorner() || noPionLeft();
+        return !kingFound() || kingInCorner() || noPionLeft() || !canRedStillPlay() || !canBlackStillPlay();
     }
 
     private boolean noPionLeft() {
@@ -412,6 +412,32 @@ public class Board {
             }
         }
         return counter;
+    }
+
+    public boolean canRedStillPlay(){
+        for(int x = 0; x < board.length; x++){
+            for(int y = 0; y < board.length; y++){
+                if(isRed(x,y)){
+                    if(!getPossibleMoves(x, y).isEmpty()){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean canBlackStillPlay(){
+        for(int x = 0; x < board.length; x++){
+            for(int y = 0; y < board.length; y++){
+                if(isBlack(x,y)){
+                    if(!getPossibleMoves(x, y).isEmpty()){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public int getNumberOfCapturersAroundKing() {
