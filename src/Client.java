@@ -112,7 +112,7 @@ class Client {
     }
 
     private static void respond() throws IOException {
-        Move nextMove = getFastestMove(cpuPlayer.getNextMoveAB(board));
+        Move nextMove = cpuPlayer.getNextMoveAB(board);
         board.setPionOnBoard(nextMove);
         board.show();
         previousMove = nextMove;
@@ -123,10 +123,5 @@ class Client {
         System.out.println(move);
         output.write(move.getBytes(), 0, move.length());
         output.flush();
-    }
-
-    public static Move getFastestMove(ArrayList<Move> moves) {
-        Optional<Move> theMove = moves.stream().min(Comparator.comparing(Move::getNumOfNodes));
-        return theMove.get();
     }
 }
