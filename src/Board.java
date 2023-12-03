@@ -4,8 +4,11 @@ import java.util.Optional;
 
 public class Board {
     public static final int BOARD_SIZE = 13;
+
     private Pion[][] board;
+
     private static final int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
     private int initialNumOfReds;
     private int initialNumOfBlacks;
     private int initialNumOfCapturersAroundKing;
@@ -54,7 +57,7 @@ public class Board {
         return possibleMoves;
     }
 
-    private ArrayList<Move> getPossibleMoves(int x, int y) {
+    public ArrayList<Move> getPossibleMoves(int x, int y) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
 
         for (int[] direction : directions) {
@@ -100,7 +103,7 @@ public class Board {
     }
 
     public boolean gameIsDone() {
-        return !kingFound() || kingInCorner() || noPionLeft() || redCantStillPlay() || blackCantStillPlay();
+        return !kingFound() || kingInCorner() || noPionLeft() || !canRedStillPlay() || !canBlackStillPlay();
     }
 
     private boolean noPionLeft() {
@@ -150,6 +153,22 @@ public class Board {
         return evaluateBlack();
     }
 
+    public int evaluateBlack() {
+        int eval = commonEvaluate();
+
+        eval -= 3 * (getNumberOfCapturersAroundKing() - initialNumOfCapturersAroundKing);
+
+        return eval;
+    }
+
+    public int evaluateRed() {
+        int eval = -commonEvaluate();
+
+        eval += 5 * (getNumberOfCapturersAroundKing() - initialNumOfCapturersAroundKing);
+
+        return eval;
+    }
+
     private int commonEvaluate() {
         // Check si king arrive dans un coin
         if (kingInCorner()) {
@@ -162,28 +181,15 @@ public class Board {
         }
 
         int eval = 0;
-        eval += 2 * (initialNumOfReds - getNumberOfPionsRouge());
-        eval -= 10 * (initialNumOfBlacks - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
+        eval += 5*(initialNumOfReds - getNumberOfPionsRouge());
+        eval -= 10*(initialNumOfBlacks - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
 
-        if (hasKingPathToCorner()) {
-            eval += 40;
+        if(hasKingPathToCorner()){
+            eval += 60;
         }
-        if (getNumberOfPionsRouge() == 0) {
+        if(getNumberOfPionsRouge() == 0){
             eval = -90;
         }
-
-        return eval;
-    }
-
-    public int evaluateBlack() {
-        int eval = commonEvaluate();
-        return eval;
-    }
-
-    public int evaluateRed() {
-        int eval = -commonEvaluate();
-
-        eval -= 5 * (initialNumOfCapturersAroundKing - getNumberOfCapturersAroundKing());
 
         return eval;
     }
@@ -400,7 +406,7 @@ public class Board {
         int counter = 0;
         for(int x = 0; x < board.length; x++){
             for(int y = 0; y < board.length; y++){
-                if(isBlack(x,y) && isKing(x,y)){
+                if(isBlack(x,y) || isKing(x,y)){
                     counter++;
                 }
             }
@@ -408,56 +414,35 @@ public class Board {
         return counter;
     }
 
-    public boolean redCantStillPlay() {
-        for (int x = 0; x < board.length; x++) {
-            for (int y = 0; y < board.length; y++) {
-                if (isRed(x,y)){
-                    if (!getPossibleMoves(x, y).isEmpty()) {
-                        return false;
+    public boolean canRedStillPlay(){
+        for(int x = 0; x < board.length; x++){
+            for(int y = 0; y < board.length; y++){
+                if(isRed(x,y)){
+                    if(!getPossibleMoves(x, y).isEmpty()){
+                        return true;
                     }
                 }
             }
         }
-        return true;
+        return false;
     }
 
-    public boolean blackCantStillPlay(){
-        for (int x = 0; x < board.length; x++) {
-            for (int y = 0; y < board.length; y++) {
-                if (isBlack(x,y)) {
-                    if (!getPossibleMoves(x, y).isEmpty()) {
-                        return false;
+    public boolean canBlackStillPlay(){
+        for(int x = 0; x < board.length; x++){
+            for(int y = 0; y < board.length; y++){
+                if(isBlack(x,y)){
+                    if(!getPossibleMoves(x, y).isEmpty()){
+                        return true;
                     }
                 }
             }
         }
-        return true;
-    }
-
-    public int getEvaluateGlobalNoir(int nombrePionRouge, int nombrePionNoir, Pion pion) {
-        int eval = 0;
-        eval += 2*(nombrePionRouge-getNumberOfPionsRouge());
-        eval -= 10*(nombrePionNoir - getNumberOfPionsNoir()); // Plus de points parce que y a moins de pions noir que rouge
-
-        if (pion.isRed()) {
-            eval -= 5 * getNumberOfCapturersAroundKing();
-        }
-        if (hasKingPathToCorner()) {
-            eval += 40;
-        }
-        if (redCantStillPlay()) {
-            eval = -90;
-        }
-        if (blackCantStillPlay()) {
-            eval = 90;
-        }
-
-        return eval;
+        return false;
     }
 
     public int getNumberOfCapturersAroundKing() {
         int numOfCapturers = 0;
-        if (getKingPosition().isEmpty()) {
+        if (!getKingPosition().isPresent()) {
             return numOfCapturers;
         }
         Point kingPosition = getKingPosition().get();
