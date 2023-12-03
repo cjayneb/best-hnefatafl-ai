@@ -3,6 +3,8 @@ import java.util.*;
 class CPUPlayer {
     private static final int MIN_DEPTH = 2;
     private static final int TIME_LIMIT = 4900;
+    private static final double DYNAMIC_DEPTH_MULTIPLIER = 0.9;
+    private static final boolean DYNAMIC_DEPTH_ACTIVED = true;
     private static long startTime;
     private int numExploredNodes;
     private final Pion cpu;
@@ -37,7 +39,7 @@ class CPUPlayer {
 
             int maxDepth = determineDynamicDepth();
 
-            int score = minimaxAB(copy, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
+            int score = minimaxAB(copy, MIN_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
             currentMove.setNumOfNodes(numExploredNodes);
 
             System.out.println(currentMove.indexToString() + "| Score: " + score + " | nodes: " + numExploredNodes + " | depth: " + maxDepth);
@@ -83,7 +85,7 @@ class CPUPlayer {
         long elapsedTime = System.currentTimeMillis() - startTime;
         int maxDepth = MIN_DEPTH;
 
-        if (elapsedTime < 0.9 * TIME_LIMIT) {
+        if (DYNAMIC_DEPTH_ACTIVED && elapsedTime < DYNAMIC_DEPTH_MULTIPLIER * TIME_LIMIT) {
             maxDepth = 3;
         }
 
