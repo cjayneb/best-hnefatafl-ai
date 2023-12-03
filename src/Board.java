@@ -57,7 +57,7 @@ public class Board {
         return possibleMoves;
     }
 
-    private ArrayList<Move> getPossibleMoves(int x, int y) {
+    public ArrayList<Move> getPossibleMoves(int x, int y) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
 
         for (int[] direction : directions) {
@@ -153,6 +153,22 @@ public class Board {
         return evaluateBlack();
     }
 
+    public int evaluateBlack() {
+        int eval = commonEvaluate();
+
+        eval -= 3 * (getNumberOfCapturersAroundKing() - initialNumOfCapturersAroundKing);
+
+        return eval;
+    }
+
+    public int evaluateRed() {
+        int eval = -commonEvaluate();
+
+        eval += 5 * (getNumberOfCapturersAroundKing() - initialNumOfCapturersAroundKing);
+
+        return eval;
+    }
+
     private int commonEvaluate() {
         // Check si king arrive dans un coin
         if (kingInCorner()) {
@@ -165,28 +181,15 @@ public class Board {
         }
 
         int eval = 0;
-        eval += 2*(initialNumOfReds - getNumberOfPionsRouge());
+        eval += 5*(initialNumOfReds - getNumberOfPionsRouge());
         eval -= 10*(initialNumOfBlacks - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
 
         if(hasKingPathToCorner()){
-            eval += 40;
+            eval += 60;
         }
         if(getNumberOfPionsRouge() == 0){
             eval = -90;
         }
-
-        return eval;
-    }
-
-    public int evaluateBlack() {
-        int eval = commonEvaluate();
-        return eval;
-    }
-
-    public int evaluateRed() {
-        int eval = -commonEvaluate();
-
-        eval -= 5 * (initialNumOfCapturersAroundKing - getNumberOfCapturersAroundKing());
 
         return eval;
     }
@@ -403,7 +406,7 @@ public class Board {
         int counter = 0;
         for(int x = 0; x < board.length; x++){
             for(int y = 0; y < board.length; y++){
-                if(isBlack(x,y) && isKing(x,y)){
+                if(isBlack(x,y) || isKing(x,y)){
                     counter++;
                 }
             }
