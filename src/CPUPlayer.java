@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.*;
 
 class CPUPlayer {
@@ -27,38 +28,64 @@ class CPUPlayer {
         board.setInitialNumOfReds(board.getNumberOfPionsRouge());
         board.setInitialNumOfBlacks(board.getNumberOfPionsNoir());
         board.setInitialNumOfCapturersAroundKing(board.getNumberOfCapturersAroundKing());
-        for (Move currentMove : board.getPossibleMoves(this.cpu)) {
-            numExploredNodes = 0;
-            numExploredNodes++;
-            rootNodesCounter++;
+        board.setTotalNumberOfMoves(board.getTotalNumberOfMoves() + 1);
 
-            Board copy = new Board(board);
-            copy.setPionOnBoard(currentMove);
+        // Active blocking exits strategy
+        System.out.println(board.getTotalNumberOfMoves());
+        if (this.cpu.isRed() && board.getTotalNumberOfMoves() <= 15 && !board.getAllEmptyExitTiles().isEmpty()) {
+            int shortestDistance = 100;
 
-            int maxDepth = determineDynamicDepth();
-
-            int score = minimaxAB(copy, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
-            currentMove.setNumOfNodes(numExploredNodes);
-
-            System.out.println(currentMove.indexToString() + "| Score: " + score + " | nodes: " + numExploredNodes + " | depth: " + maxDepth);
-            if (score == 100 && numExploredNodes == 1) {
-                bestMoves.clear();
-                bestMoves.add(currentMove);
-                break;
+            for (Move move : board.getPossibleMoves(this.cpu)) {
+                ArrayList<Point> emptyExitTiles = board.getAllEmptyExitTiles();
+                if (emptyExitTiles.contains(move.new_position)) {
+                    int distance = board.positionDistanceTo(move.old_position, emptyExitTiles.get(emptyExitTiles.indexOf(move.new_position)));
+                    if (!emptyExitTiles.contains(move.old_position)) {
+                        if (distance < shortestDistance) {
+                            shortestDistance = distance;
+                            bestMoves.clear();
+                            bestMoves.add(move);
+                        }
+                        else if (distance == shortestDistance) {
+                            bestMoves.add(move);
+                        }
+                    }
+                }
             }
+        }
+        if (bestMoves.isEmpty()) {
+            for (Move currentMove : board.getPossibleMoves(this.cpu)) {
+                numExploredNodes = 0;
+                numExploredNodes++;
+                rootNodesCounter++;
 
-            if (score > bestScore) {
-                bestScore = score;
-                bestMoves.clear();
-                bestMoves.add(currentMove);
-            } else if (score == bestScore) {
-                bestMoves.add(currentMove);
-            }
+                Board copy = new Board(board);
+                copy.setPionOnBoard(currentMove);
 
-            // Check if time limit exceeded
-            if (System.currentTimeMillis() - startTime >= TIME_LIMIT) {
-                System.out.println("\nTime limit exceeded!");
-                break;
+                int maxDepth = determineDynamicDepth();
+
+                int score = minimaxAB(copy, maxDepth, Integer.MIN_VALUE, Integer.MAX_VALUE, false, nombrePionRouge, nombrePionNoir);
+                currentMove.setNumOfNodes(numExploredNodes);
+
+                System.out.println(currentMove.indexToString() + "| Score: " + score + " | nodes: " + numExploredNodes + " | depth: " + maxDepth);
+                if (score == 100 && numExploredNodes == 1) {
+                    bestMoves.clear();
+                    bestMoves.add(currentMove);
+                    break;
+                }
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMoves.clear();
+                    bestMoves.add(currentMove);
+                } else if (score == bestScore) {
+                    bestMoves.add(currentMove);
+                }
+
+                // Check if time limit exceeded
+                if (System.currentTimeMillis() - startTime >= TIME_LIMIT) {
+                    System.out.println("\nTime limit exceeded!");
+                    break;
+                }
             }
         }
         System.out.println("-> Moves traversed: " + rootNodesCounter + " / " + board.getPossibleMoves(this.cpu).size() + " in " + (System.currentTimeMillis() - startTime) + "ms");
@@ -83,9 +110,9 @@ class CPUPlayer {
         long elapsedTime = System.currentTimeMillis() - startTime;
         int maxDepth = MIN_DEPTH;
 
-        if (elapsedTime < 0.9 * TIME_LIMIT) {
-            maxDepth = 3;
-        }
+//        if (elapsedTime < 0.8 * TIME_LIMIT) {
+//            maxDepth = 3;
+//        }
 
         return maxDepth;
     }

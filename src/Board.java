@@ -1,3 +1,4 @@
+import javax.swing.text.Position;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -12,6 +13,8 @@ public class Board {
     private int initialNumOfReds;
     private int initialNumOfBlacks;
     private int initialNumOfCapturersAroundKing;
+    private int totalNumberOfMoves;
+
 
     public Board() {
         this.board = new Pion[BOARD_SIZE][BOARD_SIZE];
@@ -31,6 +34,7 @@ public class Board {
         this.initialNumOfReds = board.getInitialNumOfReds();
         this.initialNumOfBlacks = board.getInitialNumOfBlacks();
         this.initialNumOfCapturersAroundKing = board.getInitialNumOfCapturersAroundKing();
+        this.totalNumberOfMoves = board.getTotalNumberOfMoves();
     }
 
     public void initializeBoard(String[] input) {
@@ -135,17 +139,6 @@ public class Board {
         return Optional.empty();
     }
 
-    private boolean kingFound() {
-        for (int x = 0; x < board.length; x++) {
-            for (int y = 0; y < board.length; y++) {
-                if (isKing(x, y)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     public int evaluate(Pion pion) {
         if (pion.isRed()) {
             return evaluateRed();
@@ -176,7 +169,7 @@ public class Board {
         }
 
         //Check si le roi est toujours sur le board ou si il s'est fait capturer
-        if (!isKingOnBoard()) {
+        if (kingIsNotOnBoard()) {
             return -100;
         }
 
@@ -184,7 +177,11 @@ public class Board {
         eval += 5*(initialNumOfReds - getNumberOfPionsRouge());
         eval -= 10*(initialNumOfBlacks - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
 
-        if(hasKingPathToCorner()){
+        // Plus le roi est proche des coins, plus les rouges sont récompensés.
+        // Plus le roi est loin des coins, plus les noirs sont récompensés.
+        eval -= kingMinDistanceToToCorner();
+
+        if (hasKingPathToCorner()) {
             eval += 60;
         }
         if(getNumberOfPionsRouge() == 0){
@@ -217,15 +214,66 @@ public class Board {
         return false;
     }
 
-    private boolean isKingOnBoard() {
+    private int kingMinDistanceToToCorner() {
+        Point king = getKingPosition().get();
+
+        // Trouve la distance minimal entre le roi et n'importe quel coin.
+        int topLeft = positionDistanceTo(king, new Point(0, 0));
+        int topRight = positionDistanceTo(king, new Point(BOARD_SIZE - 1, 0));
+        int bottomLeft = positionDistanceTo(king, new Point(0, BOARD_SIZE - 1));
+        int bottomRight = positionDistanceTo(king, new Point(BOARD_SIZE - 1, BOARD_SIZE - 1));
+
+        int minTop = Math.min(topLeft, topRight);
+        int minBottom = Math.min(bottomLeft, bottomRight);
+
+        return Math.min(minTop, minBottom);
+    }
+
+    protected int positionDistanceTo(Point position, Point destination) {
+        return Math.abs(destination.x - position.x) + Math.abs(destination.y - position.y);
+    }
+
+    ArrayList<Point> getAllEmptyExitTiles() {
+        ArrayList<Point> emptyExitTiles = new ArrayList<>();
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
-                if (board[i][j] == Pion.KING) {
-                    return true;
+                Point currentTile = new Point(i, j);
+                if (getAllExitTiles().contains(currentTile) && board[i][j] == Pion.EMPTY) {
+                    emptyExitTiles.add(currentTile);
                 }
             }
         }
-        return false;
+
+        return emptyExitTiles;
+    }
+
+    private ArrayList<Point> getAllExitTiles() {
+        int[] firstPossibleIndexes = {0, 1, 2};
+        int[] finalPossibleIndexes = {BOARD_SIZE - 3, BOARD_SIZE - 2, BOARD_SIZE - 1};
+        int lengthOfIndexes = firstPossibleIndexes.length;
+
+        ArrayList<Point> exitTiles = new ArrayList<>();
+
+        for (int i = 0 ; i < lengthOfIndexes; i++) {
+            exitTiles.add(new Point(firstPossibleIndexes[i], firstPossibleIndexes[lengthOfIndexes - 1 - i]));
+            exitTiles.add(new Point(firstPossibleIndexes[i], finalPossibleIndexes[i]));
+
+            exitTiles.add(new Point(finalPossibleIndexes[i], firstPossibleIndexes[i]));
+            exitTiles.add(new Point(finalPossibleIndexes[i], finalPossibleIndexes[lengthOfIndexes - 1 - i]));
+        }
+
+        return exitTiles;
+    }
+
+    private boolean kingIsNotOnBoard() {
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if (board[i][j] == Pion.KING) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private boolean isPathClear(int startX, int startY, int endX, int endY) {
@@ -484,5 +532,13 @@ public class Board {
 
     public void setInitialNumOfCapturersAroundKing(int initialNumOfCapturersAroundKing) {
         this.initialNumOfCapturersAroundKing = initialNumOfCapturersAroundKing;
+    }
+
+    public int getTotalNumberOfMoves() {
+        return totalNumberOfMoves;
+    }
+
+    public void setTotalNumberOfMoves(int totalNumberOfMoves) {
+        this.totalNumberOfMoves = totalNumberOfMoves;
     }
 }

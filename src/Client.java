@@ -18,7 +18,8 @@ class Client {
         board = new Board();
       
         try {
-            MyClient = new Socket("localhost", 8888);
+//            MyClient = new Socket("localhost", 8888);
+            MyClient = new Socket("10.0.0.236", 8888);
             input = new BufferedInputStream(MyClient.getInputStream());
             output = new BufferedOutputStream(MyClient.getOutputStream());
 
