@@ -2,7 +2,7 @@ import java.util.*;
 
 class CPUPlayer {
     private static final int MIN_DEPTH = 2;
-    private static final int TIME_LIMIT = 4900;
+    private static final int TIME_LIMIT = 4800;
     private static final double DYNAMIC_DEPTH_MULTIPLIER = 0.9;
     private static final boolean DYNAMIC_DEPTH_ACTIVED = true;
     private static long startTime;
