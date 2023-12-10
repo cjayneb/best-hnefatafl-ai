@@ -181,7 +181,7 @@ public class Board {
         }
 
         int eval = 0;
-        eval += 5*(initialNumOfReds - getNumberOfPionsRouge());
+        eval += 10*(initialNumOfReds - getNumberOfPionsRouge());
         eval -= 10*(initialNumOfBlacks - getNumberOfPionsNoir()); //Plus de points parce que y a moins de pions noir que rouge
 
         if(hasKingPathToCorner()){

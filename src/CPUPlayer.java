@@ -1,8 +1,10 @@
 import java.util.*;
 
 class CPUPlayer {
-    private static final int MAX_DEPTH = 2;
+    private static final int MIN_DEPTH = 2;
     private static final int TIME_LIMIT = 4800;
+    private static final double DYNAMIC_DEPTH_MULTIPLIER = 0.9;
+    private static final boolean DYNAMIC_DEPTH_ACTIVED = true;
     private static long startTime;
     private int numExploredNodes;
     private final Pion cpu;
@@ -21,22 +23,26 @@ class CPUPlayer {
     public Move getNextMoveAB(Board board) {
         ArrayList<Move> bestMoves = new ArrayList<>();
         int bestScore = Integer.MIN_VALUE;
+        int rootNodesCounter = 0;
         startTime = System.currentTimeMillis();
 
         board.setInitialNumOfReds(board.getNumberOfPionsRouge());
         board.setInitialNumOfBlacks(board.getNumberOfPionsNoir());
         board.setInitialNumOfCapturersAroundKing(board.getNumberOfCapturersAroundKing());
-
         for (Move currentMove : board.getPossibleMoves(this.cpu)) {
             numExploredNodes = 0;
             numExploredNodes++;
+            rootNodesCounter++;
 
             Board copy = new Board(board);
             copy.setPionOnBoard(currentMove);
-            int score = minimaxAB(copy, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
+
+            int maxDepth = determineDynamicDepth();
+
+            int score = minimaxAB(copy, MIN_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
             currentMove.setNumOfNodes(numExploredNodes);
 
-            System.out.println(currentMove.indexToString() + " | Score: " + score + " | nodes: " + numExploredNodes);
+            System.out.println(currentMove.indexToString() + "| Score: " + score + " | nodes: " + numExploredNodes + " | depth: " + maxDepth);
             if (score == 100 && numExploredNodes == 1) {
                 bestMoves.clear();
                 bestMoves.add(currentMove);
@@ -47,17 +53,18 @@ class CPUPlayer {
                 bestScore = score;
                 bestMoves.clear();
                 bestMoves.add(currentMove);
-            }
-            else if (score == bestScore) {
+            } else if (score == bestScore) {
                 bestMoves.add(currentMove);
             }
 
             // Check if time limit exceeded
-            if (System.currentTimeMillis() - startTime >= TIME_LIMIT + 200) {
+            if (System.currentTimeMillis() - startTime >= TIME_LIMIT) {
                 System.out.println("\nTime limit exceeded!");
                 break;
             }
         }
+        System.out.println("-> Moves traversed: " + rootNodesCounter + " / " + board.getPossibleMoves(this.cpu).size() + " in " + (System.currentTimeMillis() - startTime) + "ms");
+
         Move bestMove = getFastestMove(bestMoves);
         if (bestMoves.size() > 1 && !lastMoves.isEmpty() && lastMoves.peek().indexToString().equals(bestMove.indexToString())) {
             bestMoves.remove(bestMove);
@@ -72,6 +79,17 @@ class CPUPlayer {
         lastMoves.add(bestMove);
 
         return bestMove;
+    }
+
+    private int determineDynamicDepth() {
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        int maxDepth = MIN_DEPTH;
+
+        if (DYNAMIC_DEPTH_ACTIVED && elapsedTime < DYNAMIC_DEPTH_MULTIPLIER * TIME_LIMIT) {
+            maxDepth = 3;
+        }
+
+        return maxDepth;
     }
 
     public int minimaxAB(Board board, int depth, int alpha, int beta, boolean maximizingPlayer) {
